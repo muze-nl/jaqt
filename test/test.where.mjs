@@ -14,8 +14,9 @@ const data = [
 	}
 ]
 
-data[0].friends = data[1]
-data[1].friends = data[0]
+data[0].friends.push(data[1])
+data[1].friends.push(data[0])
+
 
 tap.test('match-exact', t => {
 	let result = data.where({
