@@ -5,8 +5,16 @@ array-where-select adds two extra functions to the Array prototype. Together you
 
 ## Table of Contents
 
-<!-- toc -->
+1. [Background](#background)
+2. [Install](#install)
+3. [Usage](#usage)
+4. [API](#api)
+   - [Array.select()](#array-select)
+   - [Array.where()](#array-where)
+5. [Contributions](#contributions)
+6. [License](#license)
 
+<a name="background"></a>
 ## Background
 
 There are many libraries that add a kind of query language to javascript arrays. GraphQL is one of those. But all the libraries I have found add a custom query language. Either by adding specific functions that mimic SQL, or by explicitly defining a query language like GraphQL. In all cases this means that you give up the power of javascript itself and must switch to a different, less capable language.
@@ -15,6 +23,7 @@ So this library is explicitly not a query language itself, but it uses some java
 
 There are no speed improvements or indexes over normal Array.filter and Array.map.
 
+<a name="install"></a>
 ## Install
 
 Using NPM:
@@ -37,6 +46,7 @@ Or in a browser:
 
 This library uses ES6 import/export syntax, but there is only a single javascript file. You can include that directly, or use a bundler.
 
+<a name="usage"></a>
 ## Usage
 
 The examples below all use the data below. The data uses [JSONTag](https://www.npmjs.com/package/@muze-nl/jsontag), to allow for multiple links to the same object. This is not relevant for the remainder of the examples or needed to use this library.
@@ -73,8 +83,10 @@ data.where({
 })
 ```
 
+<a name="api"></a>
 ## API
 
+<a name="array-select"></a>
 ### Array.select()
 
 Select describes which properties from a dataset you would like to have in your result set. This is similar to the way GraphQL works. For example: You can select just the name part like this:
@@ -133,10 +145,11 @@ Or you can use functions in the select parameter, like so:
 
 ```javascript
 data.select({
-	name: (_) => _.name+' '+_.lastName
+	name: _ => _.name+' '+_.lastName
 })
 ```
 
+<a name="array-where"></a>
 ### Array.where()
 
 While select() allows you to select the properties for your result set, where() allows you to filter the result set only to matching objects. To match a specific property with a specific value do this:
@@ -186,6 +199,7 @@ data.where({
 })
 ```
 
+<a name="contributions"></a>
 ## Contributions
 
 Contributions are welcome. Please fork the github repository and make your changes there, then open a pull request.
@@ -193,6 +207,7 @@ If you find any bugs or other issues, please use the github repository Issues. C
 
 The github repository is at https://github.com/muze/array-where-select
 
+<a name="license"></a>
 ## License
 
 This software is licensed under MIT open source license. See the [License](./LICENSE) file.
