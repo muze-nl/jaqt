@@ -46,7 +46,7 @@ Or in a browser:
 
 This library uses ES6 import/export syntax, but there is only a single javascript file. You can include that directly, or use a bundler.
 
-/Note/: this library adds two functions, select() and where(), to the Array.prototype. If you don't want this, don't use this library.
+_**Note**: this library adds two functions, select() and where(), to the Array.prototype. If you don't want this, don't use this library._
 
 <a name="usage"></a>
 ## Usage
