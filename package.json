@@ -1,0 +1,20 @@
+{
+	"name": "array-where-select",
+	"version": "0.1.0",
+	"description": "Allows GraphQL-like functionality on Javascript arrays of objects. Adds .select() and .where() functions to Array prototype.",
+	"type": "module",
+	"author": "Auke van Slooten <auke@muze.nl>",
+	"keywords": [
+		"array",
+		"query",
+		"select",
+		"where"
+	],
+	"main": "./src/whereselect.mjs",
+	"scripts": {
+		"test": "tap test/*.mjs"
+	},
+	"devDependencies": {
+		"tap": "~16.3.7"
+	}
+}
