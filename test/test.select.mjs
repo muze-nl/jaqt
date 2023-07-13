@@ -1,4 +1,4 @@
-import _ from '../src/whereselect.mjs'
+import { _, from } from '../src/whereselect.mjs'
 import tap from 'tap'
 
 const data = [
@@ -18,7 +18,7 @@ data[0].friends.push(data[1])
 data[1].friends.push(data[0])
 
 tap.test('select', t => {
-	let result = data.select({
+	let result = from(data).select({
 		name: _
 	})
 	t.same(result[0].name,data[0].name)
@@ -27,7 +27,7 @@ tap.test('select', t => {
 })
 
 tap.test('select-alt', t => {
-	let result = data.select({
+	let result = from(data).select({
 		name: _.name
 	})
 	t.same(result[0].name,data[0].name)
@@ -36,7 +36,7 @@ tap.test('select-alt', t => {
 })
 
 tap.test('select-alias', t => {
-	let result = data.select({
+	let result = from(data).select({
 		newname: _.name
 	})
 	t.same(result[0].newname,data[0].name)
@@ -45,7 +45,7 @@ tap.test('select-alias', t => {
 })
 
 tap.test('select-function', t => {
-	let result = data.select({
+	let result = from(data).select({
 		name: _ => _.name+' '+_.lastName
 	})
 	t.same(result[0].name,data[0].name+' '+data[0].lastName)
@@ -54,7 +54,7 @@ tap.test('select-function', t => {
 })
 
 tap.test('select-deep', t => {
-	let result = data.select({
+	let result = from(data).select({
 		friends: {
 			name: _
 		}
@@ -66,7 +66,7 @@ tap.test('select-deep', t => {
 
 tap.test('object-select', t => {
 	let object = data[0]
-	let result = object.select({
+	let result = from(object).select({
 		name: _
 	})
 	t.same(result.name, object.name)

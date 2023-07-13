@@ -1,7 +1,10 @@
 # array-where-select: GraphQL-style Array.select() and Array.where()
 
-array-where-select adds two extra functions to the Array prototype. Together you can filter and transform an array of objects, by specifying the shape of the objects.
+array-where-select is a simple map/filter query engine for arrays and objects. e.g:
 
+```javascript
+from(dataset).where({name: 'John'}).select({lastName:_})
+```
 
 ## Table of Contents
 
@@ -9,8 +12,9 @@ array-where-select adds two extra functions to the Array prototype. Together you
 2. [Install](#install)
 3. [Usage](#usage)
 4. [API](#api)
-   - [Array.select()](#array-select)
-   - [Array.where()](#array-where)
+   - [from()](#from)
+   - [select()](#select)
+   - [where()](#where)
 5. [Contributions](#contributions)
 6. [License](#license)
 
@@ -35,7 +39,7 @@ npm install array-where-select
 Then in your javascript:
 
 ```javascript
-import _ from 'array-where-select'
+import { from, _ } from 'array-where-select'
 ```
 
 Or in a browser:
@@ -45,8 +49,6 @@ Or in a browser:
 ```
 
 This library uses ES6 import/export syntax, but there is only a single javascript file. You can include that directly, or use a bundler.
-
-_**Note**: this library adds two functions, select() and where(), to the Array.prototype. If you don't want this, don't use this library._
 
 <a name="usage"></a>
 ## Usage
@@ -75,7 +77,10 @@ let data = JSONTag.parse(`[
 And this is how you can use this library:
 
 ```javascript
-data.where({
+import {from, _} from 'array-where-select'
+
+from(data)
+.where({
 	friends: {
 		name: 'John'
 	}
@@ -88,13 +93,19 @@ data.where({
 <a name="api"></a>
 ## API
 
-<a name="array-select"></a>
-### Array.select()
+<a name="from"></a>
+### from()
+
+From wraps its parameter in a Proxy, on which you can call where--if its an array-- and select, for either arrays or objects. 
+
+<a name="select"></a>
+### select()
 
 Select describes which properties from a dataset you would like to have in your result set. This is similar to the way GraphQL works. For example: You can select just the name part like this:
 
 ```javascript
-data.select({
+from(data)
+.select({
 	name: _
 })
 ```
@@ -116,15 +127,34 @@ The _ represents the identity function and will return the value matching with t
 You can also specify this like so:
 
 ```javascript
-data.select({
+from(data)
+.select({
 	name: _.name
 })
+```
+
+In addition you can also use a single object, like this:
+
+```javascript
+from(data[0])
+.select({
+	name: _
+})
+```
+
+And the result will be a new object, not an array:
+
+```json
+{
+	"name": "John"
+}
 ```
 
 Now lets show the name of each friend.
 
 ```javascript
-data.select({
+from(data)
+.select({
 	name: _,
 	friends: {
 		name: _
@@ -135,7 +165,8 @@ data.select({
 You can also use a different name, or alias, in the result:
 
 ```javascript
-data.select({
+from(data)
+.select({
 	firstName: _.name,
 	friends: {
 		firstName: _.name
@@ -146,18 +177,20 @@ data.select({
 Or you can use functions in the select parameter, like so:
 
 ```javascript
-data.select({
+from(data)
+.select({
 	name: _ => _.name+' '+_.lastName
 })
 ```
 
-<a name="array-where"></a>
-### Array.where()
+<a name="where"></a>
+### where()
 
 While select() allows you to select the properties for your result set, where() allows you to filter the result set only to matching objects. To match a specific property with a specific value do this:
 
 ```javascript
-data.where({
+from(data)
+.where({
 	name: 'John'
 })
 ```
@@ -165,7 +198,8 @@ data.where({
 Or use properties of nested objects like this:
 
 ```javascript
-data.where({
+from(data)
+.where({
 	friends: {
 		name: 'John'
 	}
@@ -175,7 +209,8 @@ data.where({
 You can also use regular expressions:
 
 ```javascript
-data.where({
+from(data)
+.where({
 	name: /J.*/
 })
 ```
@@ -183,7 +218,8 @@ data.where({
 And finally you can use match functions:
 
 ```javascript
-data.where({
+from(data)
+.where({
 	name: _ => _.name[0] == 'J'
 })
 ```
@@ -191,7 +227,8 @@ data.where({
 And you can combine where with select like this:
 
 ```javascript
-data.where({
+from(data)
+.where({
 	friends: {
 		name: 'John'
 	}

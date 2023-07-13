@@ -19,7 +19,7 @@ function isString(data) {
  * @param  {object|function} filter Which keys with which values you want
  * @return {object}                 The result object 
  */
-function subselect(data, filter) {
+function select(data, filter) {
 	let result = {} // make sure that arrays are handled somewhere else
 	if (filter instanceof Function) {
 		filter = filter(data)
@@ -27,9 +27,9 @@ function subselect(data, filter) {
 	for (const [fKey,fVal] of Object.entries(filter)) {
 		if (isObject(fVal)) {
 			if (Array.isArray(data[fKey])) {
-				result[fKey] = data[fKey].select(fVal)
+				result[fKey] = from(data[fKey]).select(fVal)
 			} else if (isObject(data[fKey])) {
-				result[fKey] = subselect(data[fKey], fVal)
+				result[fKey] = select(data[fKey], fVal)
 			} else { // data[fKey] doesn't exist
 				result[fKey] = null
 			}
@@ -51,7 +51,7 @@ function subselect(data, filter) {
  * @param  {object} where The shape to match data with
  * @return {bool}         True if the data matches, false otherwise
  */
-function match(data, where) {
+function where(data, where) {
 	for (const [wKey, wVal] of Object.entries(where)) {
 	  if (wVal instanceof Function) {
 	  	let matches = wVal(data, wKey)
@@ -65,12 +65,12 @@ function match(data, where) {
 	  	}
 	  } else if (isObject(wVal)) {
 	  	if (Array.isArray(data[wKey])) {
-	  		let matches = data[wKey].where(wVal)
+	  		let matches = from(data[wKey]).where(wVal)
 	  		if (matches.length==0) {
 	  			return false
 	  		}
 	  	} else if (isObject(data[wKey])) {
-	  		let matches = match(data[wKey], wVal)
+	  		let matches = where(data[wKey], wVal)
 	  		if (!matches) {
 	  			return false
 	  		}
@@ -84,23 +84,34 @@ function match(data, where) {
 	return true
 }
 
-Object.defineProperty(Array.prototype, 'select', { 
-  value: function(filter) {
-    return this.map((_) => subselect(_, filter))
-  }
-})
-
-Object.defineProperty(Object.prototype, 'select', {
-	value: function(filter) {
-		return subselect(this,filter)
+const DataProxyHandler = {
+	get(target, property) {
+		if (Array.isArray(target)) {
+			if (property==='where') {
+				return function(shape) {
+					return new Proxy(target.filter(_ => where(_, shape)), DataProxyHandler)
+				}
+			}
+			if (property==='select') {
+				return function(filter) {
+  		    return new Proxy(target.map(_ => select(_, filter)), DataProxyHandler)
+				}
+			}
+		}
+		if (target && typeof target==='object') {
+			if (property==='select') {
+				return function(filter) {
+					return new Proxy(select(target, filter), DataProxyHandler)
+				}
+			}
+		}
+		return target[property]
 	}
-})
+}
 
-Object.defineProperty(Array.prototype, 'where', { 
-  value: function(shape) {
-    return this.filter((_) => match(_, shape))
-  }
-})
+export function from(data) {
+	return new Proxy(data, DataProxyHandler)
+}
 
 function getVal(data, key) {
   return key ? data[key] : data
@@ -115,6 +126,4 @@ const handler = {
 	}
 }
 
-const _ = new Proxy(getVal, handler)
-
-export default _
+export const _ = new Proxy(getVal, handler)
