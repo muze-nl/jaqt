@@ -10,9 +10,18 @@
 		"select",
 		"where"
 	],
+	"homepage": "https://github.com/muze-nl/array-where-select",
+	"bugs": {
+		"url": "https://github.com/muze-nl/array-where-select/issues"
+	},
+	"license": "MIT",
 	"main": "./src/whereselect.mjs",
 	"scripts": {
 		"test": "tap test/*.mjs"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/muze-nl/array-where-select.git"
 	},
 	"devDependencies": {
 		"tap": "~16.3.7"
