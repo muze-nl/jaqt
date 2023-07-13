@@ -1,6 +1,6 @@
 {
 	"name": "array-where-select",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Allows GraphQL-like functionality on Javascript arrays of objects. Adds .select() and .where() functions to Array prototype.",
 	"type": "module",
 	"author": "Auke van Slooten <auke@muze.nl>",
