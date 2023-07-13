@@ -64,3 +64,11 @@ tap.test('select-deep', t => {
 	t.end()
 })
 
+tap.test('object-select', t => {
+	let object = data[0]
+	let result = object.select({
+		name: _
+	})
+	t.same(result.name, object.name)
+	t.end()
+})

@@ -90,6 +90,12 @@ Object.defineProperty(Array.prototype, 'select', {
   }
 })
 
+Object.defineProperty(Object.prototype, 'select', {
+	value: function(filter) {
+		return subselect(this,filter)
+	}
+})
+
 Object.defineProperty(Array.prototype, 'where', { 
   value: function(shape) {
     return this.filter((_) => match(_, shape))
