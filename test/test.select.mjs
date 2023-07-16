@@ -72,3 +72,27 @@ tap.test('object-select', t => {
 	t.same(result.name, object.name)
 	t.end()
 })
+
+tap.test('nested-from', t => {
+	let result = from(data)
+	.where({
+		name: 'John'
+	})
+	.select({
+		name: _,
+		friends: d => {
+			return from(data).where({
+				name: 'Jane'
+			}).select({
+				name: _
+			})
+		}
+	})
+	t.same([{
+		name: 'John',
+		friends: [{
+			name: 'Jane'
+		}]
+	}], result)
+	t.end()
+})

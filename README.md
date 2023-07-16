@@ -179,7 +179,7 @@ Or you can use functions in the select parameter, like so:
 ```javascript
 from(data)
 .select({
-	name: _ => _.name+' '+_.lastName
+	name: o => o.name+' '+o.lastName
 })
 ```
 
@@ -220,7 +220,7 @@ And finally you can use match functions:
 ```javascript
 from(data)
 .where({
-	name: _ => _.name[0] == 'J'
+	name: o => o.name[0] == 'J'
 })
 ```
 
@@ -234,9 +234,10 @@ from(data)
 	}
 })
 .select({
-	name: _ => _.name+' '+_.lastName
+	name: o => o.name+' '+o.lastName
 })
 ```
+_**Note**: if you use a function in a select() statement, don't use '\_' as the argument name. Though this looks nice, the _ parameter is a special function. By naming the function parameter '\_', you lose access to its properties inside that function._
 
 <a name="contributions"></a>
 ## Contributions
