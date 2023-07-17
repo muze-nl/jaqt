@@ -109,7 +109,26 @@ const DataProxyHandler = {
 	}
 }
 
+const EmptyHandler = {
+	get(target, property) {
+		if (property==='where') {
+			return function(shape) {
+				return new Proxy([], EmptyHandler)
+			}
+		}
+		if (property==='select') {
+			return function(filter) {
+				return null
+			}
+		}
+		return null
+	}
+}
+
 export function from(data) {
+	if (!data || typeof data !== 'object') {
+		return new Proxy([], EmptyHandler)
+	}
 	return new Proxy(data, DataProxyHandler)
 }
 

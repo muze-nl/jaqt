@@ -96,3 +96,15 @@ tap.test('nested-from', t => {
 	}], result)
 	t.end()
 })
+
+tap.test('empty-from', t => {
+	let result = from(null)
+	.where({
+		name: 'John'
+	})
+	.select({
+		name: _
+	})
+	t.same(null, result)
+	t.end()
+})
