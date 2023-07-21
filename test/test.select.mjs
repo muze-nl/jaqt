@@ -26,6 +26,17 @@ tap.test('select', t => {
 	t.end()
 })
 
+// this makes sure that you can return static
+// strings in a select that happen to be a
+// property name
+tap.test('select-string', t => {
+	let result = from(data).select({
+		naam: 'name'
+	})
+	t.same(result[0].naam, 'name')
+	t.end()
+})
+
 tap.test('select-alt', t => {
 	let result = from(data).select({
 		name: _.name
@@ -106,5 +117,15 @@ tap.test('empty-from', t => {
 		name: _
 	})
 	t.same(null, result)
+	t.end()
+})
+
+tap.test('array-functions', t => {
+	let result = from(data)
+	.filter(o => o.name==='John')
+	.select({
+		dob: _
+	})
+	t.same(data[0].dob, result[0].dob)
 	t.end()
 })

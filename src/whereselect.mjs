@@ -35,8 +35,6 @@ function select(data, filter) {
 			}
 		} else if (fVal instanceof Function) {
 			result[fKey] = fVal(data, fKey)
-		} else if (isString(fVal) && typeof data[fVal]!=='undefined'){
-			result[fKey] = data[fVal]
 		} else {
 			result[fKey] = fVal
 		}
@@ -84,6 +82,16 @@ function where(data, where) {
 	return true
 }
 
+const FunctionProxyHandler = {
+	apply(target, thisArg, argumentsList) {
+		let result = target.apply(thisArg,argumentsList)
+		if (typeof result === 'object') {
+			return new Proxy(result, DataProxyHandler)
+		}
+		return result
+	}
+}
+
 const DataProxyHandler = {
 	get(target, property) {
 		if (Array.isArray(target)) {
@@ -104,6 +112,9 @@ const DataProxyHandler = {
 					return new Proxy(select(target, filter), DataProxyHandler)
 				}
 			}
+		}
+		if (target && typeof target[property]==='function') {
+			return new Proxy(target[property], FunctionProxyHandler)
 		}
 		return target[property]
 	}
