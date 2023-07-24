@@ -1,4 +1,5 @@
-function isObject(data) {
+function isObject(data) 
+{
 	return typeof data === 'object' && !(
 		data instanceof String
 		|| data instanceof Number
@@ -8,7 +9,8 @@ function isObject(data) {
 	)
 }
 
-function isString(data) {
+function isString(data) 
+{
 	return typeof data === 'string' || data instanceof String
 }
 
@@ -19,7 +21,8 @@ function isString(data) {
  * @param  {object|function} filter Which keys with which values you want
  * @return {object}                 The result object 
  */
-function select(data, filter) {
+export function select(data, filter) 
+{
 	let result = {} // make sure that arrays are handled somewhere else
 	if (filter instanceof Function) {
 		filter = filter(data)
@@ -42,48 +45,56 @@ function select(data, filter) {
 	return result
 }
 
-/**
- * Implements a filter that matches the data object
- * with the shape/where parameter.
- * @param  {object} data  The data to match
- * @param  {object} where The shape to match data with
- * @return {bool}         True if the data matches, false otherwise
- */
-function where(data, where) {
-	for (const [wKey, wVal] of Object.entries(where)) {
-	  if (wVal instanceof Function) {
-	  	let matches = wVal(data, wKey)
-	  	if (!matches) {
-	  		return false
-	  	}
-	  } else if (wVal instanceof RegExp) {
-	  	let matches = wVal.test(data[wKey])
-	  	if (!matches) {
-	  		return false
-	  	}
-	  } else if (isObject(wVal)) {
-	  	if (Array.isArray(data[wKey])) {
-	  		let matches = from(data[wKey]).where(wVal)
-	  		if (matches.length==0) {
-	  			return false
-	  		}
-	  	} else if (isObject(data[wKey])) {
-	  		let matches = where(data[wKey], wVal)
-	  		if (!matches) {
-	  			return false
-	  		}
-	  	} else {
-	  		return false
-	  	}
-	  } else if (data[wKey]!==wVal) {
-	  	return false
-	  }
+export function matches(data, pattern) 
+{
+	if (Array.isArray(pattern)) {
+		//return from(data).where(pattern).length>0
+		throw new Error('not yet implemented')
+	} else if (pattern instanceof RegExp) {
+		return pattern.test(data)
+	} else if (pattern instanceof Function) {
+		return pattern(data)
+	} else if (isObject(pattern)) {
+		if (Array.isArray(data)) {
+			return data.filter(element => matches(element,pattern)).length>0
+		}
+		if (!isObject(data)) {
+			return false
+		}
+		for (const [wKey, wVal] of Object.entries(pattern)) {
+		  if (!matches(data[wKey], wVal)) {
+		  	return false
+		  }
+		}
+		return true
+	} else {
+		return pattern===data
 	}
-	return true
+}
+
+export function not(match) 
+{
+	return data => !matches(match,data)
+}
+
+export function anyOf(...variants) 
+{
+	return data => variants
+		.find(variant => matches(data, variant))
+		.length>0
+}
+
+export function allOf(...variants)
+{
+	return data => variants
+		.map(variant => matches(data, variant))
+		.filter(value => !value)
+		.length===0
 }
 
 const FunctionProxyHandler = {
-	apply(target, thisArg, argumentsList) {
+	apply(target, thisArg, argumentsList) 
+	{
 		let result = target.apply(thisArg,argumentsList)
 		if (typeof result === 'object') {
 			return new Proxy(result, DataProxyHandler)
@@ -93,16 +104,17 @@ const FunctionProxyHandler = {
 }
 
 const DataProxyHandler = {
-	get(target, property) {
+	get(target, property) 
+	{
 		if (Array.isArray(target)) {
 			if (property==='where') {
 				return function(shape) {
-					return new Proxy(target.filter(_ => where(_, shape)), DataProxyHandler)
+					return new Proxy(target.filter(element => matches(element, shape)), DataProxyHandler)
 				}
 			}
 			if (property==='select') {
 				return function(filter) {
-  		    return new Proxy(target.map(_ => select(_, filter)), DataProxyHandler)
+  		    return new Proxy(target.map(element => select(element, filter)), DataProxyHandler)
 				}
 			}
 		}
@@ -121,7 +133,8 @@ const DataProxyHandler = {
 }
 
 const EmptyHandler = {
-	get(target, property) {
+	get(target, property) 
+	{
 		if (property==='where') {
 			return function(shape) {
 				return new Proxy([], EmptyHandler)
@@ -136,22 +149,26 @@ const EmptyHandler = {
 	}
 }
 
-export function from(data) {
+export function from(data) 
+{
 	if (!data || typeof data !== 'object') {
 		return new Proxy([], EmptyHandler)
 	}
 	return new Proxy(data, DataProxyHandler)
 }
 
-function getVal(data, key) {
+function getVal(data, key) 
+{
   return key ? data[key] : data
 }
 
 const handler = {
-	get(target, property) {
-		return (_) => _[property]
+	get(target, property) 
+	{
+		return element => element[property]
 	},
-	apply(target, thisArg, argumentsList) {
+	apply(target, thisArg, argumentsList) 
+	{
 		return target(...argumentsList)
 	}
 }

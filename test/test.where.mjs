@@ -1,4 +1,4 @@
-import { _, from } from '../src/whereselect.mjs'
+import { _, from, not, anyOf, allOf } from '../src/whereselect.mjs'
 import tap from 'tap'
 
 const data = [
@@ -17,7 +17,6 @@ const data = [
 data[0].friends.push(data[1])
 data[1].friends.push(data[0])
 
-
 tap.test('match-exact', t => {
 	let result = from(data).where({
 		name: 'John'
@@ -28,7 +27,7 @@ tap.test('match-exact', t => {
 
 tap.test('match-regexp', t => {
 	let result = from(data).where({
-		name: /J.*/
+		name: new RegExp('J.*')
 	})
 	t.same(result, data)
 	t.end()
@@ -46,7 +45,7 @@ tap.test('match-deep', t => {
 
 tap.test('match-function', t => {
 	let result = from(data).where({
-		name: _ => _.name[1]==='o'
+		name: name => name[1]==='o'
 	})
 	t.equal(result[0], data[0])
 	t.end()
@@ -64,4 +63,26 @@ tap.test('where-select', t => {
 		lastName: 'Doe'
 	})
 	t.end()
+})
+
+tap.test('where-not', t => {
+	let result = from(data).where({
+		name: not('John')
+	}).select({
+		name: _
+	})
+	t.same(result[0], { name: 'Jane'})
+	t.end()
+})
+
+tap.test('where-anyOf', t => {
+	let result = from(data).where({
+		name: anyOf('John','Jane')
+	}).select({
+		name: _
+	})
+	t.same(result[0], { name: 'John'})
+	t.same(result[1], { name: 'Jane'})
+	t.end()
+
 })
