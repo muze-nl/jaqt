@@ -28,18 +28,40 @@ export function select(data, filter)
 		filter = filter(data)
 	}
 	for (const [fKey,fVal] of Object.entries(filter)) {
+		let source = data[fKey]
+		let target
+		let rKey = fKey
+		if (rKey == '_') {
+			target = result
+		} else {
+			if (!result[rKey]) {
+				result[rKey] = {}
+			}
+			target = result[rKey]
+		}
 		if (isObject(fVal)) {
-			if (Array.isArray(data[fKey])) {
-				result[fKey] = from(data[fKey]).select(fVal)
-			} else if (isObject(data[fKey])) {
-				result[fKey] = select(data[fKey], fVal)
+			if (Array.isArray(source)) {
+				Object.assign(target, from(source).select(fVal))
+			} else if (isObject(source)) {
+				Object.assign(target, select(source, fVal))
 			} else { // data[fKey] doesn't exist
-				result[fKey] = null
+				target = null
 			}
 		} else if (fVal instanceof Function) {
-			result[fKey] = fVal(data, fKey)
+			target = fVal(data, fKey)
 		} else {
-			result[fKey] = fVal
+			target = fVal
+		}
+		if (target!==result[rKey]) { // target is a new value, so update result[rKey]
+			if (rKey=='_' && typeof target === 'object') {
+				if (target) { // not null
+					Object.assign(result, target)
+				}
+			} else if (target !== null) {
+				result[rKey] = target
+			} else {
+				delete result[rKey]
+			}
 		}
 	}
 	return result
@@ -159,6 +181,9 @@ export function from(data)
 
 function getVal(data, key) 
 {
+	if (key==='_') {
+		key = false
+	}
   return key ? data[key] : data
 }
 

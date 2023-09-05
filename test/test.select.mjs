@@ -5,12 +5,14 @@ const data = [
 	{
 		name: 'John',
 		lastName: 'Doe',
-		friends: []
+		friends: [],
+		dob: '1972-09-20'
 	},
 	{
 		name: 'Jane',
 		lastName: 'Doe',
-		friends: []
+		friends: [],
+		dob: '1976-02-27'
 	}
 ]
 
@@ -127,5 +129,32 @@ tap.test('array-functions', t => {
 		dob: _
 	})
 	t.same(data[0].dob, result[0].dob)
+	t.end()
+})
+
+tap.test('ignore undefined results', t => {
+	let result = from(data)
+	.select({
+		foo: _.foo
+	})
+	t.notHas(result[0], {foo:{}})
+	t.end()
+
+})
+tap.test('select-all', t => {
+	let result = from(data)
+	.select({
+		_
+	})
+	t.same(data, result)
+	t.end()
+})
+tap.test('select-all-plus', t => {
+	let result = from(data)
+	.select({
+		_,
+		foo: 'bar'
+	})
+	t.same(result[0].foo, 'bar')
 	t.end()
 })
