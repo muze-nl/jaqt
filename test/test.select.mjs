@@ -158,3 +158,18 @@ tap.test('select-all-plus', t => {
 	t.same(result[0].foo, 'bar')
 	t.end()
 })
+
+tap.test('select-some-plus', t => {
+	let result = from(data)
+	.select({
+		_: {
+			name: _,
+			lastName: _
+		},
+		foo: 'bar' 
+	})
+	t.same(result[0].name, 'John')
+	t.same(result[0].foo, 'bar')
+	t.end()
+
+})
