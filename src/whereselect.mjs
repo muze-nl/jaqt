@@ -33,6 +33,7 @@ export function select(data, filter)
 		let rKey = fKey
 		if (rKey == '_') {
 			target = result
+			source = data
 		} else {
 			if (!result[rKey]) {
 				result[rKey] = {}
