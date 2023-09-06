@@ -15,6 +15,9 @@ from(dataset).where({name: 'John'}).select({lastName:_})
    - [from()](#from)
    - [select()](#select)
    - [where()](#where)
+   - [not()](#not)
+   - [anyOf()](#anyOf)
+   - [allOf()](#allOf)
 5. [Contributions](#contributions)
 6. [License](#license)
 
@@ -182,7 +185,23 @@ from(data)
 	name: o => o.name+' '+o.lastName
 })
 ```
-@TODO: add documentation for key: '\_' here
+
+There is a special key value '\_', that means that you want to promote the values of the filter object on the right hand, to its parent object. This allows you to something like this:
+
+```javascript
+const names = {
+	name: _,
+	lastName: _
+}
+
+from(data)
+.select({
+	_: names,
+	foo: 'bar'
+})
+```
+
+Using the '\_' key, you can now create reusable fragments, like in GraphQL, and merge the results into one result object.
 
 <a name="where"></a>
 ### where()
@@ -240,7 +259,56 @@ from(data)
 ```
 _**Note**: if you use a function in a select() statement, don't use '\_' as the argument name. Though this looks nice, the _ parameter is a special function. By naming the function parameter '\_', you lose access to its properties inside that function._
 
-@TODO: document allOf, anyOf and not
+<a name="not"></a>
+### not()
+
+This function can be used in combination with the `where()` function. It allows you to explicitly select objects that do not match the given template object or value.
+
+```javascript
+from(data)
+.where({
+	name: not('John')
+})
+.select({
+	name: _
+})
+```
+
+<a name="anyOf"></a>
+### anyOf()
+This function can be used in combination with the `where()` function. It allows you to select objects that match at least one of the template objects or values in anyOf().
+
+```javascript
+from(data)
+.where({
+	name: anyOf('John','Jane')
+})
+.select({
+	name: _
+})
+```
+
+<a name="allOf"></a>
+### allOf()
+Just like `anyOf()` this function can be used in a `where()` function. It allows you to select objects that match all of the template objects or values in `allOf()`.
+
+```javascript
+from(data)
+.where(
+	allOf(
+		{
+			name: 'John'
+		},
+		{
+			lastName: 'Doe'
+		}
+	)
+)
+.select({
+	name: _
+})
+```
+
 
 <a name="contributions"></a>
 ## Contributions
