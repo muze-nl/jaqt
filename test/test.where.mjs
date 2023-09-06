@@ -84,5 +84,22 @@ tap.test('where-anyOf', t => {
 	t.same(result[0], { name: 'John'})
 	t.same(result[1], { name: 'Jane'})
 	t.end()
+})
 
+tap.test('where-allOf', t => {
+	let result = from(data).where(
+		 allOf(
+		 	{
+		 		name: 'John'
+		 	},
+		 	{
+			 	lastName: 'Doe'
+		 	}
+		 )
+	).select({
+		name: _
+	})
+	t.same(result[0], { name: 'John'})
+	t.equal(result.length, 1)
+	t.end()
 })
