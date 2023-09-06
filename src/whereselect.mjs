@@ -27,41 +27,48 @@ export function select(data, filter)
 	if (filter instanceof Function) {
 		filter = filter(data)
 	}
-	for (const [fKey,fVal] of Object.entries(filter)) {
-		let source = data[fKey]
-		let target
-		let rKey = fKey
-		if (rKey == '_') {
+
+	for (const [filterKey,filterValue] of Object.entries(filter)) {
+
+		let source, target
+		
+		if (filterKey == '_') {
 			target = result
 			source = data
 		} else {
-			if (!result[rKey]) {
-				result[rKey] = {}
+			if (!result[filterKey]) {
+				result[filterKey] = {}
 			}
-			target = result[rKey]
+			target = result[filterKey]
+			source = data[filterKey]
 		}
-		if (isObject(fVal)) {
+		
+		if (isObject(filterValue)) {
 			if (Array.isArray(source)) {
-				Object.assign(target, from(source).select(fVal))
+				Object.assign(target, from(source).select(filterValue))
 			} else if (isObject(source)) {
-				Object.assign(target, select(source, fVal))
-			} else { // data[fKey] doesn't exist
+				Object.assign(target, select(source, filterValue))
+			} else { // data[filterKey] doesn't exist
 				target = null
 			}
-		} else if (fVal instanceof Function) {
-			target = fVal(data, fKey)
+		} else if (filterValue instanceof Function) {
+			target = filterValue(data, filterKey)
 		} else {
-			target = fVal
+			target = filterValue
 		}
-		if (target!==result[rKey]) { // target is a new value, so update result[rKey]
-			if (rKey=='_' && typeof target === 'object') {
-				if (target) { // not null
-					Object.assign(result, target)
-				}
-			} else if (target !== null) {
-				result[rKey] = target
+		
+		if (target!==result[filterKey]) { 
+			// target is a new value, so update result[filterKey]
+			if (filterKey=='_' && isObject(target)) {
+				// promote target into result
+				Object.assign(result, target)
+			} else if (target !== null) { 
+				// if target is not an object, assign it to filterKey, even if it is '_', 
+				// since I can't promote a non object into an object
+				result[filterKey] = target
 			} else {
-				delete result[rKey]
+				// target is null, so remove the key from result, to mimic GrapQL behaviour
+				delete result[filterKey]
 			}
 		}
 	}
