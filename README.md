@@ -182,6 +182,7 @@ from(data)
 	name: o => o.name+' '+o.lastName
 })
 ```
+@TODO: add documentation for key: '\_' here
 
 <a name="where"></a>
 ### where()
@@ -238,6 +239,8 @@ from(data)
 })
 ```
 _**Note**: if you use a function in a select() statement, don't use '\_' as the argument name. Though this looks nice, the _ parameter is a special function. By naming the function parameter '\_', you lose access to its properties inside that function._
+
+@TODO: document allOf, anyOf and not
 
 <a name="contributions"></a>
 ## Contributions
