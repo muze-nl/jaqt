@@ -173,3 +173,33 @@ tap.test('select-some-plus', t => {
 	t.end()
 
 })
+
+tap.test('select-filter-null', t => {
+	// test right hand side returns null
+	// can I still merge with key _?
+	let result = from(data)
+	.select({
+		foo: 'bar',
+		_: null
+	})
+	t.same(result[0].foo, 'bar')
+	t.end()
+})
+
+tap.test('select-filter-_-non-object', t => {
+	let result = from(data)
+	.select({
+		_: _.name
+	})
+	t.same(result[0]._, 'John')
+	t.end()
+})
+
+tap.test('select-filter-_-literal', t => {
+	let result = from(data)
+	.select({
+		_: 'foo'
+	})
+	t.same(result[0]._, 'foo')
+	t.end()
+})
