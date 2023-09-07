@@ -186,22 +186,19 @@ from(data)
 })
 ```
 
-There is a special key value '\_', that means that you want to promote the values of the filter object on the right hand, to its parent object. This allows you to something like this:
+You can also use the spread operator to include different fragments, like this:
 
 ```javascript
 const names = {
 	name: _,
 	lastName: _
 }
-
 from(data)
 .select({
-	_: names,
+	...names,
 	foo: 'bar'
 })
 ```
-
-Using the '\_' key, you can now create reusable fragments, like in GraphQL, and merge the results into one result object.
 
 <a name="where"></a>
 ### where()
@@ -308,7 +305,6 @@ from(data)
 	name: _
 })
 ```
-
 
 <a name="contributions"></a>
 ## Contributions

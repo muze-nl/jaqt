@@ -1,6 +1,6 @@
 {
 	"name": "array-where-select",
-	"version": "0.3.3",
+	"version": "0.4.0",
 	"description": "Allows GraphQL-like functionality on Javascript arrays of objects.",
 	"type": "module",
 	"author": "Auke van Slooten <auke@muze.nl>",
@@ -24,6 +24,7 @@
 		"url": "https://github.com/muze-nl/array-where-select.git"
 	},
 	"devDependencies": {
+		"eslint": "^8.48.0",
 		"tap": "~16.3.7"
 	}
 }
