@@ -31,21 +31,23 @@ export function select(data, filter)
     }
 
     for (const [filterKey,filterValue] of Object.entries(filter)) {
-    
+				let resultValue = null
         if (isObject(filterValue)) {
             if (Array.isArray(data[filterKey])) {
-                result[filterKey] = from(data[filterKey]).select(filterValue)
+                resultValue = from(data[filterKey]).select(filterValue)
             } else if (isObject(data[filterKey])) {
-                result[filterKey] = select(data[filterKey], filterValue)
+                resultValue = select(data[filterKey], filterValue)
             } else { // data[filterKey] doesn't exist
                 //result[filterKey] = null
             }
         } else if (filterValue instanceof Function) {
-            result[filterKey] = filterValue(data, filterKey)
+            resultValue = filterValue(data, filterKey)
         } else {
-            result[filterKey] = filterValue
+            resultValue = filterValue
         }
-        
+				if (resultValue!==undefined) {
+					  result[filterKey] = resultValue
+				}        
     }
     return result
 }

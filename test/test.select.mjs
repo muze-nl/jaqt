@@ -201,5 +201,15 @@ tap.test('select-orderBy-deep', t => {
 	t.same(result[0].name, 'John')
 	t.same(result[1].name, 'Jane')
 	t.end()
+})
 
+tap.test('select-null', t => {
+	let result = from(data)
+	.select({
+		name: _,
+		foo: _
+	})
+	let check = typeof result[0].foo == 'undefined'
+	t.ok(check)
+	t.end()
 })
