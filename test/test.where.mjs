@@ -103,3 +103,26 @@ tap.test('where-allOf', t => {
 	t.equal(result.length, 1)
 	t.end()
 })
+
+tap.test('where-string-object', t => {
+	const data = [
+		{
+			name: new String('John'),
+			lastName: 'Doe',
+			friends: []
+		},
+		{
+			name: new String('Jane'),
+			lastName: 'Doe',
+			friends: []
+		}
+	]
+	let result = from(data).where({
+	 	name: 'John'
+	}).select({
+		name: _
+	})
+	t.same(JSON.stringify(result[0]), '{"name":"John"}')
+	t.equal(result.length, 1)
+	t.end()
+})

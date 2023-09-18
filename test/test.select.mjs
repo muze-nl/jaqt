@@ -1,4 +1,4 @@
-import { _, from } from '../src/whereselect.mjs'
+import { _, from, asc, desc } from '../src/whereselect.mjs'
 import tap from 'tap'
 
 const data = [
@@ -156,4 +156,50 @@ tap.test('select-spread', t => {
 	t.same(result[0].lastName, 'Doe')
 	t.same(result[0].foo, 'bar')
 	t.end()
+})
+
+tap.test('select-orderBy', t => {
+	let result = from(data)
+	.orderBy({
+		name: asc
+	})
+	.select({
+		name: _
+	})
+	t.same(result[0].name, 'Jane')
+	t.same(result[1].name, 'John')
+	t.end()
+})
+
+tap.test('select-orderBy-deep', t => {
+	const data = [
+		{
+			name: 'Jane',
+			job: {
+				title: 'CFO',
+				salary: 210000
+			}
+		},
+		{
+			name: 'John',
+			job: {
+				title: 'CEO',
+				salary: 250000
+			}
+		}
+	]
+
+	let result = from(data)
+	.orderBy({
+		job: {
+			salary: desc
+		}
+	})
+	.select({
+		name: _
+	})
+	t.same(result[0].name, 'John')
+	t.same(result[1].name, 'Jane')
+	t.end()
+
 })

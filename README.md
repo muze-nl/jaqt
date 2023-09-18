@@ -14,6 +14,7 @@ from(dataset).where({name: 'John'}).select({lastName:_})
 4. [API](#api)
    - [from()](#from)
    - [select()](#select)
+   - [orderBy()](#orderBy)
    - [where()](#where)
    - [not()](#not)
    - [anyOf()](#anyOf)
@@ -89,7 +90,7 @@ from(data)
 	}
 })
 .select({
-	name: _ => _.name+' '+_.lastName
+	name: o => o.name+' '+o.lastName
 })
 ```
 
@@ -197,6 +198,50 @@ from(data)
 .select({
 	...names,
 	foo: 'bar'
+})
+```
+
+<a name="orderBy"></a>
+### orderBy()
+
+You can sort arrays using the orderBy() function, like this:
+
+```javascript
+from(data)
+.select({
+	name: _,
+	lastName: _
+})
+.orderBy({
+	lastName: asc,
+	name: asc
+})
+```
+
+This will sort the result array first by lastName, in ascending order, then by name, also in ascending order.
+
+You can also sort by properties of object values in the results. And finally, instead of 'asc' or 'desc', you may also provide your own sort function like this:
+
+```javascript
+from(data)
+.select({
+	name: _,
+	lastName: _
+})
+.orderBy({
+	lastName: (a,b) => a<b ? -1 : 1
+})
+```
+
+You can order results by fields that aren't in the result set, by moving the orderBy section up, like this:
+
+```javascript
+from(data)
+.orderBy({
+	lastName: asc
+})
+.select({
+	name: _
 })
 ```
 
