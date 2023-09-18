@@ -213,7 +213,7 @@ const DataProxyHandler = {
               	break
                 case 'orderBy':
 		                return function(pattern) {
-					              return new Proxy(target.sort((a,b) => orderBy(a, b, pattern)), DataProxyHandler)
+					              return new Proxy(target.toSorted((a,b) => orderBy(a, b, pattern)), DataProxyHandler)
 		                }
                	break
         		}
