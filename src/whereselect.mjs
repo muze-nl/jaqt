@@ -41,7 +41,7 @@ export function select(data, filter)
                 //result[filterKey] = null
             }
         } else if (filterValue instanceof Function) {
-            resultValue = filterValue(data, filterKey)
+            resultValue = filterValue(data, filterKey, 'select')
         } else {
             resultValue = filterValue
         }
@@ -111,28 +111,160 @@ export const desc = Symbol('desc')
  */
 export function orderBy(a, b, pattern)
 {
-		let comparisons = Object.entries(pattern)
-		for (var [key,compare] of comparisons) {
-				let result = 0
-				if (typeof a[key] == 'undefined' && typeof b[key] == 'undefined') {
-						continue
-				}
-				if (compare instanceof Function) {
-						result = compare(a[key],b[key])
-				}	else if (isObject(compare)) {
-					  result = orderBy(a[key],b[key],compare)
-				} else {
-						if (compare==asc) {
-							result = (a[key]>b[key] ? 1 : (a[key]<b[key] ? -1: 0) )
-						} else {
-							result = (a[key]<b[key] ? 1 : (a[key]>b[key] ? -1: 0) )
-						}
-				}
-				if (result!==0) {
-					 return result
-				}
-		}
-		return 0
+    let comparisons = Object.entries(pattern)
+    for (var [key,compare] of comparisons) {
+        let result = 0
+        if (typeof a[key] == 'undefined' && typeof b[key] == 'undefined') {
+           continue
+        }
+        if (compare instanceof Function) {
+            result = compare(a[key],b[key])
+        } else if (isObject(compare)) {
+            result = orderBy(a[key],b[key],compare)
+        } else {
+            if (compare==asc) {
+            	result = (a[key]>b[key] ? 1 : (a[key]<b[key] ? -1: 0) )
+            } else {
+            	result = (a[key]<b[key] ? 1 : (a[key]>b[key] ? -1: 0) )
+            }
+        }
+        if (result!==0) {
+            return result
+        }
+    }
+    return 0
+}
+
+function groupBy(data, pattern) {
+    let groups = {}
+
+    function addEntity(matchingGroups, entity, groups) {
+        for (let key in matchingGroups) {
+            if (typeof groups[key] == 'undefined') {
+                groups[key] = []
+            }
+            if (typeof matchingGroups[key] == 'function') {
+                let result = matchingGroups[key](entity,groups[key],'groupBy')
+                if (typeof result != 'undefined') {
+                    groups[key] = result
+                }
+            } else {
+                if (Array.isArray(groups[key])) {
+                    groups[key] = {}
+                }
+                addEntity(matchingGroups[key], entity, groups[key])
+            }
+        }
+    }
+
+    /**
+     * select the values of the pattern applied to data
+     * and set those as group keys in the result
+     * @param  {[type]} data    [description]
+     * @param  {[type]} pattern [description]
+     * @return {[type]}         [description]
+     */
+    function getMatchingGroups(data, pattern) {
+        let value = {}
+        for (let prop in pattern) {
+            let innerValue, defaultValue=[]
+            if (isObject(pattern[prop])) {
+                if (Array.isArray(data[prop])) {
+                    for (let v of data[prop]) {
+                        Object.assign(value, getMatchingGroups(v, pattern[prop]))
+                    }
+                } else {
+                    Object.assign(value, getMatchingGroups(data[prop], pattern[prop]))
+                }
+                continue
+            } else if (typeof pattern[prop] == 'function') {
+                defaultValue = pattern[prop]
+            }
+            if (typeof data[prop] != 'undefined') {
+                innerValue = data[prop]
+                if (Array.isArray(innerValue)) {
+                    for (let v of innerValue) {
+                        value[v] = defaultValue
+                    }
+                } else {
+                    value[innerValue] = defaultValue
+                }
+            }
+        }
+        return value
+    }
+
+    for (let entity of data) {
+        let matchingGroups = getMatchingGroups(entity, pattern)
+        if (Array.isArray(matchingGroups)) {
+            for (let g of matchingGroups) {
+                addEntity(g, entity, groups)                    
+            }
+        } else {
+            addEntity(matchingGroups, entity, groups)
+        }
+    }
+    return groups
+}
+
+export function sum(fetchFn) {
+    return (o,a) => {
+        if (Array.isArray(a)) {
+            a = 0
+        }
+        a += parseFloat(fetchFn(o)) || 0
+        return a
+    }
+}
+
+export function avg(fetchFn) {
+    return (o,a) => {
+        if (Array.isArray(a)) {
+            a = new Number(0)
+            a.count = 0
+        }
+        let count = a.count+1
+        a = new Number(a + ((parseFloat(fetchFn(o)) || 0) - a) / count)
+        a.count = count
+        return a
+    }
+}
+
+export function count() {
+    //FIXME: add fetchFn and count distinct fetchFn results
+    //e.g. count(_.name) -> counts all distinct values for _.name
+    return (o, a) => {
+        if (Array.isArray(a)) {
+            a = 0
+        }
+        return a+1
+    }
+}
+
+export function max(fetchFn) {
+    return (o,a) => {
+        if (Array.isArray(a)) {
+            a = Number.NEGATIVE_INFINITY
+        }
+        let value = parseFloat(fetchFn(o))
+        if (!isNaN(value) && value>a) {
+            a = value
+        }
+        return a
+    }
+}
+
+export function min(fetchFn) {
+    return (o,a) => {
+        if (Array.isArray(a)) {
+            a = Number.POSITIVE_INFINITY
+        }
+        let value = parseFloat(fetchFn(o))
+        if (!isNaN(value) && value<a) {
+            a = value
+        }
+        return a
+    }
 }
 
 /**
@@ -200,23 +332,36 @@ const DataProxyHandler = {
     get(target, property) 
     {
         if (Array.isArray(target)) {
-        		switch(property) {
-		        		case 'where':
-		                return function(shape) {
-		                    return new Proxy(target.filter(element => matches(element, shape)), DataProxyHandler)
-		                }
+            switch(property) {
+            	case 'where':
+                    return function(shape) {
+                        return new Proxy(target
+                            .filter(element => matches(element, shape))
+                            , DataProxyHandler)
+                    }
                 break
                 case 'select':
-		                return function(filter) {
-					              return new Proxy(target.map(element => select(element, filter)), DataProxyHandler)
-		                }
-              	break
+                    return function(filter) {
+                        return new Proxy(target
+                            .map(element => select(element, filter))
+                            , DataProxyHandler)
+                    }
+                break
                 case 'orderBy':
-		                return function(pattern) {
-					              return new Proxy(target.toSorted((a,b) => orderBy(a, b, pattern)), DataProxyHandler)
-		                }
-               	break
-        		}
+                    return function(pattern) {
+                        return new Proxy(target
+                            .toSorted((a,b) => orderBy(a, b, pattern))
+                            , DataProxyHandler)
+                    }
+                break
+                case 'groupBy':
+                    return function(groups) {
+                        let temp = groupBy(target, groups)
+                        return new Proxy(temp
+                            , DataProxyHandler)
+                    }
+                break
+            }
         }
         if (target && typeof target==='object') {
             if (property==='select') {
@@ -278,12 +423,22 @@ export function from(data)
  * queries
  * 
  * @param  {mixed} data Any data
- * @param  {string} key Optional key for data objects
+ * @param  {string} key Optional key for data objects in select context or group in groupBy context
+ * @param  {string} context Optional, whether in select or groupBy context
+ * @param  {array}  group Optional, contains group in groupBy context
  * @return {mixed}      Data or data[key]
  */
-function getVal(data, key) 
+function getVal(data, key, context) 
 {
-  return key ? data[key] : data
+    switch(context) {
+        case 'groupBy':
+            key.push(data)
+        break
+        case 'select':
+        default:
+            return key ? data[key] : data
+        break
+    }
 }
 
 /**
@@ -296,7 +451,15 @@ function getVal(data, key)
 const handler = {
     get(target, property) 
     {
-        return element => element[property]
+        //FIXME: this implementation only allows for _.name
+        //not for _.films.title for example
+        return (element,key,context) => {
+            if (context=='groupBy') {
+                key.push(element[property])
+            } else {
+                return element[property]
+            }
+        }
     },
     apply(target, thisArg, argumentsList) 
     {

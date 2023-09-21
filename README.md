@@ -15,10 +15,16 @@ from(dataset).where({name: 'John'}).select({lastName:_})
    - [from()](#from)
    - [select()](#select)
    - [orderBy()](#orderBy)
+   - [groupBy()](#groupBy)
+   	- [count()](#count)
+   	- [sum()](#sum)
+   	- [avg()](#avg)
+   	- [min()](#min)
+   	- [max()](#max)
    - [where()](#where)
-   - [not()](#not)
-   - [anyOf()](#anyOf)
-   - [allOf()](#allOf)
+	   - [not()](#not)
+	   - [anyOf()](#anyOf)
+	   - [allOf()](#allOf)
 5. [Contributions](#contributions)
 6. [License](#license)
 
@@ -242,6 +248,20 @@ from(data)
 })
 .select({
 	name: _
+})
+```
+
+<a name="groupBy"></a>
+### groupBy()
+
+Note: _This function is very experimental and likely to change._
+
+Just like SQL, groupBy groups results with the same value for the groupBy field. Here is an example:
+
+```javascript
+from(data)
+.groupBy({
+	lastName: _
 })
 ```
 
