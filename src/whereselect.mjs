@@ -180,7 +180,7 @@ function groupBy(data, pattern) {
             } else if (typeof pattern[prop] == 'function') {
                 defaultValue = pattern[prop]
             }
-            if (typeof data[prop] != 'undefined') {
+            if (data && typeof data[prop] != 'undefined') {
                 innerValue = data[prop]
                 if (Array.isArray(innerValue)) {
                     for (let v of innerValue) {
@@ -451,8 +451,10 @@ function getVal(data, key, context)
 const handler = {
     get(target, property) 
     {
-        //FIXME: this implementation only allows for _.name
+        //@FIXME: this implementation only allows for _.name
         //not for _.films.title for example
+        //should probably return a new Proxy for getVal
+        //with element[property] as the data
         return (element,key,context) => {
             if (context=='groupBy') {
                 key.push(element[property])
