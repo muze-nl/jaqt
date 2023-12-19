@@ -386,15 +386,30 @@ const DataProxyHandler = {
 const EmptyHandler = {
     get(target, property) 
     {
-        if (property==='where') {
-            return function() {
-                return new Proxy([], EmptyHandler)
-            }
+        switch(property) {
+            case 'where':
+                return function() {
+                    return new Proxy([], EmptyHandler)
+                }
+            break
+            case 'select':
+                return function() {
+                    return null
+                }
+            break
+            case 'orderBy':
+                return function() {
+                    return new Proxy([], EmptyHandler)
+                }
+            break
+            case 'groupBy':
+                return function() {
+                    return new Proxy([], EmptyHandler)
+                }
+            break
         }
-        if (property==='select') {
-            return function() {
-                return null
-            }
+        if (target && typeof target[property]==='function') {
+            return new Proxy(target[property], FunctionProxyHandler)
         }
         return null
     }

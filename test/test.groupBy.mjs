@@ -140,3 +140,12 @@ tap.test("groupby-min", t => {
 	t.ok(grouped.Bike==1500)
 	t.end()
 })
+
+tap.test("groupby-null", t => {
+	let grouped = from(null)
+	.groupBy({
+		lastName: _.name
+	})
+	t.ok(grouped, null)
+	t.end()
+})
