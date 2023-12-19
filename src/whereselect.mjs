@@ -436,7 +436,11 @@ function getVal(data, key, context)
         break
         case 'select':
         default:
-            return key ? data[key] : data
+            let result = data
+            if (key) {
+                result = data ? data[key] : null
+            }
+            return result
         break
     }
 }
