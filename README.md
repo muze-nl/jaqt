@@ -386,7 +386,7 @@ from(data)
 But you can also nest queries. If any property of the data is itself an array, you can use from().where().select() on that array again:
 
 ```javascript
-from(data)
+from(data.people)
 .select({
 	name: _,
 	friends: o => from(o.friends)
@@ -400,6 +400,8 @@ from(data)
 ```
 
 Unlike the Array.filter method, functions in select() are called with the full object as the first parameter. The name on the left hand side, here 'friends', doesn't have to exist or match the results of your function. You can do anything here.
+
+Here the where() clause filters any people that have the same name, and only shows people in the friends array with a different name.
 
 <a name="contributions"></a>
 ## Contributions
