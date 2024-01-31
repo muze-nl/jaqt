@@ -25,6 +25,7 @@ from(dataset).where({name: 'John'}).select({lastName:_})
 	   - [not()](#not)
 	   - [anyOf()](#anyOf)
 	   - [allOf()](#allOf)
+	- [nested queries](#nested)
 5. [Contributions](#contributions)
 6. [License](#license)
 
@@ -370,6 +371,35 @@ from(data)
 	name: _
 })
 ```
+
+<a name="nested"></a>
+### Nested Queries
+
+You can use functions in a select() statement, like this:
+```javascript
+from(data)
+.select({
+	name: o => o.name+' '+o.lastName
+})
+```
+
+But you can also nest queries. If any property of the data is itself an array, you can use from().where().select() on that array again:
+
+```javascript
+from(data)
+.select({
+	name: _,
+	friends: o => from(o.friends)
+		where({
+			name: not(o.name)
+		})
+		.select({
+			name: _
+		})
+})
+```
+
+Unlike the Array.filter method, functions in select() are called with the full object as the first parameter. The name on the left hand side, here 'friends', doesn't have to exist or match the results of your function. You can do anything here.
 
 <a name="contributions"></a>
 ## Contributions
