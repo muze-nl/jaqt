@@ -31,7 +31,7 @@ export function select(data, filter)
     }
 
     for (const [filterKey,filterValue] of Object.entries(filter)) {
-				let resultValue = null
+        let resultValue = null
         if (isObject(filterValue)) {
             if (Array.isArray(data[filterKey])) {
                 resultValue = from(data[filterKey]).select(filterValue)
@@ -45,9 +45,9 @@ export function select(data, filter)
         } else {
             resultValue = filterValue
         }
-				if (resultValue!==undefined) {
-					  result[filterKey] = resultValue
-				}        
+        if (resultValue!==undefined) {
+              result[filterKey] = resultValue
+        }
     }
     return result
 }
@@ -101,38 +101,37 @@ export const asc = Symbol('asc')
 export const desc = Symbol('desc')
 
 /**
- * Sorts an array according to the pattern. A pattern is
+ * Returns a function to sort an array according to the pattern. A pattern is
  * an object with keys which are a sub pattern object or
  * one of the asc/desc symbols, or a custom sort(a,b) function
- * @param  {mixed} a       The first entry to compare
- * @param  {mixed} b       The second entry to compare
  * @param  {mixed} pattern The comparison pattern
- * @return {int}           Either 1, 0 or -1
+ * @return Function The function to use with toSorted()
  */
-export function orderBy(a, b, pattern)
-{
+export function getSortFn(pattern) {
     let comparisons = Object.entries(pattern)
-    for (var [key,compare] of comparisons) {
-        let result = 0
-        if (typeof a[key] == 'undefined' && typeof b[key] == 'undefined') {
-           continue
-        }
+    let fns = []
+    for (let [key,compare] of comparisons) {
         if (compare instanceof Function) {
-            result = compare(a[key],b[key])
+            fns.push(compare)
         } else if (isObject(compare)) {
-            result = orderBy(a[key],b[key],compare)
+            fns.push((a,b) => getSortFn(compare)(a[key],b[key]))
+        } else if (compare === asc) {
+            fns.push((a,b) => (a[key]>b[key] ? 1 : a[key]<b[key] ? -1: 0))
+        } else if (compare === desc) {
+            fns.push((a,b) => (a[key]<b[key] ? 1 : a[key]>b[key] ? -1: 0))
         } else {
-            if (compare==asc) {
-            	result = (a[key]>b[key] ? 1 : (a[key]<b[key] ? -1: 0) )
-            } else {
-            	result = (a[key]<b[key] ? 1 : (a[key]>b[key] ? -1: 0) )
-            }
-        }
-        if (result!==0) {
-            return result
+            throw new Error('Unknown sort order',compare)
         }
     }
-    return 0
+    return (a,b) => {
+        for (let fn of fns) {
+            let result = fn(a,b)
+            if (result!==0) {
+                return result
+            }
+        }
+        return 0
+    }
 }
 
 function groupBy(data, pattern) {
@@ -333,7 +332,7 @@ const DataProxyHandler = {
     {
         if (Array.isArray(target)) {
             switch(property) {
-            	case 'where':
+                case 'where':
                     return function(shape) {
                         return new Proxy(target
                             .filter(element => matches(element, shape))
@@ -349,8 +348,9 @@ const DataProxyHandler = {
                 break
                 case 'orderBy':
                     return function(pattern) {
+                        let sortFn = getSortFn(pattern)
                         return new Proxy(target
-                            .toSorted((a,b) => orderBy(a, b, pattern))
+                            .toSorted(sortFn)
                             , DataProxyHandler)
                     }
                 break
