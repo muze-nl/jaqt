@@ -19,37 +19,39 @@ function isObject(data)
  * implements a minimal graphql-alike selection syntax, using plain javascript
  * use with Array.prototype.select defined above
  * 
- * @param  {any}             data   The data to select keys and values from
  * @param  {object|function} filter Which keys with which values you want
- * @return {object}                 The result object 
+ * @return Function a function that selects values from objects as defined by filter
  */
-export function select(data, filter) 
-{
-    let result = {} // make sure that arrays are handled somewhere else
-    if (filter instanceof Function) {
-        filter = filter(data)
-    }
-
-    for (const [filterKey,filterValue] of Object.entries(filter)) {
-        let resultValue = null
+function getSelector(filter) {
+    let fns = []
+    for (const [filterKey, filterValue] of Object.entries(filter)) {
         if (isObject(filterValue)) {
-            if (Array.isArray(data[filterKey])) {
-                resultValue = from(data[filterKey]).select(filterValue)
-            } else if (isObject(data[filterKey])) {
-                resultValue = select(data[filterKey], filterValue)
-            } else { // data[filterKey] doesn't exist
-                //result[filterKey] = null
-            }
+            fns.push( (data) => { 
+                return {
+                    [filterKey]: from(data[filterKey]).select(filterValue)
+                }
+            })
         } else if (filterValue instanceof Function) {
-            resultValue = filterValue(data, filterKey, 'select')
+            fns.push( (data) => {
+                return {
+                    [filterKey]: filterValue(data, filterKey, 'select')
+                }
+            })
         } else {
-            resultValue = filterValue
-        }
-        if (resultValue!==undefined) {
-              result[filterKey] = resultValue
+            fns.push( (data) => {
+                return {
+                    [filterKey]: filterValue 
+                }
+            })
         }
     }
-    return result
+    return (data) => {
+        let result = {}
+        for (let fn of fns) {
+            Object.assign(result, fn(data))
+        }
+        return result
+    }
 }
 
 /**
@@ -114,7 +116,8 @@ export function getSortFn(pattern) {
         if (compare instanceof Function) {
             fns.push(compare)
         } else if (isObject(compare)) {
-            fns.push((a,b) => getSortFn(compare)(a[key],b[key]))
+            let subFn = getSortFn(compare)
+            fns.push((a,b) => subFn(a[key],b[key]))
         } else if (compare === asc) {
             fns.push((a,b) => (a[key]>b[key] ? 1 : a[key]<b[key] ? -1: 0))
         } else if (compare === desc) {
@@ -341,8 +344,9 @@ const DataProxyHandler = {
                 break
                 case 'select':
                     return function(filter) {
+                        let selector = getSelector(filter)
                         return new Proxy(target
-                            .map(element => select(element, filter))
+                            .map(element => selector(element))
                             , DataProxyHandler)
                     }
                 break
@@ -366,7 +370,8 @@ const DataProxyHandler = {
         if (target && typeof target==='object') {
             if (property==='select') {
                 return function(filter) {
-                    return new Proxy(select(target, filter), DataProxyHandler)
+                    let selector = getSelector(filter)
+                    return new Proxy(selector(target), DataProxyHandler)
                 }
             }
         }
