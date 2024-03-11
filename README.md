@@ -1,6 +1,6 @@
-# array-where-select: GraphQL-style Array.select() and Array.where()
+# jaqt: javascript queries and transformations
 
-array-where-select is a simple map/filter query engine for arrays and objects. e.g:
+jaqt (pronounced 'jacket') is a query engine for arrays and objects, inspired by graphql and sql. e.g:
 
 ```javascript
 from(dataset).where({name: 'John'}).select({lastName:_})
@@ -44,19 +44,19 @@ There are no speed improvements or indexes over normal Array.filter and Array.ma
 Using NPM:
 
 ```bash
-npm install array-where-select
+npm install jaqt
 ```
 
 Then in your javascript:
 
 ```javascript
-import { from, _ } from 'array-where-select'
+import { from, _ } from 'jaqt'
 ```
 
 Or in a browser:
 
 ```html
-<script src="path/to/array-where-select/src/whereselect.mjs" type="module"></script>
+<script src="path/to/jaqt/src/jaqt.mjs" type="module"></script>
 ```
 
 This library uses ES6 import/export syntax, but there is only a single javascript file. You can include that directly, or use a bundler.
@@ -88,7 +88,7 @@ let data = JSONTag.parse(`[
 And this is how you can use this library:
 
 ```javascript
-import {from, _} from 'array-where-select'
+import {from, _} from 'jaqt'
 
 from(data)
 .where({
