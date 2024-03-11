@@ -1,27 +1,28 @@
 {
-	"name": "array-where-select",
-	"version": "0.5.0",
-	"description": "Allows GraphQL-like functionality on Javascript arrays of objects.",
+	"name": "jaqt",
+	"version": "0.6.0",
+	"description": "Javascript Queries and Transformations, allows GraphQL-like functionality on Javascript arrays of objects.",
 	"type": "module",
 	"author": "Auke van Slooten <auke@muze.nl>",
 	"keywords": [
-		"array",
+		"from",
 		"query",
 		"select",
-		"where"
+		"where",
+		"tranformation"
 	],
-	"homepage": "https://github.com/muze-nl/array-where-select",
+	"homepage": "https://github.com/muze-nl/jaqt",
 	"bugs": {
-		"url": "https://github.com/muze-nl/array-where-select/issues"
+		"url": "https://github.com/muze-nl/jaqt/issues"
 	},
 	"license": "MIT",
-	"main": "./src/whereselect.mjs",
+	"main": "./src/jaqt.mjs",
 	"scripts": {
 		"test": "tap test/*.mjs"
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/muze-nl/array-where-select.git"
+		"url": "https://github.com/muze-nl/jaqt.git"
 	},
 	"engines": {
 		"node": ">=20.0.0"

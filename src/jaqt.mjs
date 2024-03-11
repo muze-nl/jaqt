@@ -17,12 +17,12 @@ function isObject(data)
 
 /**
  * implements a minimal graphql-alike selection syntax, using plain javascript
- * use with Array.prototype.select defined above
+ * use with from(...arr).select
  * 
  * @param  {object|function} filter Which keys with which values you want
  * @return Function a function that selects values from objects as defined by filter
  */
-function getSelector(filter) {
+function getSelectFn(filter) {
     let fns = []
     for (const [filterKey, filterValue] of Object.entries(filter)) {
         if (isObject(filterValue)) {
@@ -45,6 +45,9 @@ function getSelector(filter) {
             })
         }
     }
+    if (fns.length==1) {
+        return fns[0]
+    }
     return (data) => {
         let result = {}
         for (let fn of fns) {
@@ -58,35 +61,55 @@ function getSelector(filter) {
  * This function checks whether the given data matches the given pattern
  * Pattern can be a function, a regular expression, an object or a literal value
  * The pattern is matched recursively
+ * Use with from(...arr).where
  * 
- * @param  {mixed} data    The data to match to the pattern
  * @param  {mixed} pattern The pattern to test
- * @return {Boolean}         True if the pattern matches the data
+ * @return Function        The filter function
  */
-export function matches(data, pattern) 
+export function getMatchFn(pattern)
 {
+    let fns = []
     if (Array.isArray(pattern)) {
-        //return from(data).where(pattern).length>0
         throw new Error('not yet implemented')
     } else if (pattern instanceof RegExp) {
-        return pattern.test(data)
+        fns.push((data) => pattern.test(data))
     } else if (pattern instanceof Function) {
-        return pattern(data)
+        fns.push((data) => pattern(data))
     } else if (isObject(pattern)) {
-        if (Array.isArray(data)) {
-            return data.filter(element => matches(element,pattern)).length>0
-        }
-        if (!isObject(data)) {
-            return false
-        }
+        let patternMatches = {}
         for (const [wKey, wVal] of Object.entries(pattern)) {
-          if (!matches(data[wKey], wVal)) {
-              return false
-          }
+            patternMatches[wKey] = getMatchFn(wVal)
+        }
+        let matchFn = (data) => {
+            if (Array.isArray(data)) {
+                return data.filter(element => matchFn(element)).length>0
+            }
+            if (!isObject(data)) {
+                return false
+            }
+            for (let wKey in patternMatches) {
+                let patternMatchFn = patternMatches[wKey]
+                if (!patternMatchFn(data[wKey])) {
+                    return false
+                }
+            }
+            return true
+        }
+        fns.push(matchFn)
+    } else {
+        fns.push((data) => pattern==data)
+    }
+    if (fns.length==1) {
+        return fns[0]
+    }
+    return (data) => {
+        let result = {}
+        for (let fn of fns) {
+            if (!fn(data)) {
+                return false
+            }
         }
         return true
-    } else {
-        return pattern==data
     }
 }
 
@@ -125,6 +148,9 @@ export function getSortFn(pattern) {
         } else {
             throw new Error('Unknown sort order',compare)
         }
+    }
+    if (fns.length==1) {
+        return fns[0] // special case, if you only have one sort element, just return that, it is faster
     }
     return (a,b) => {
         for (let fn of fns) {
@@ -279,7 +305,8 @@ export function min(fetchFn) {
  */
 export function not(pattern) 
 {
-    return data => !matches(pattern,data)
+    let matchFn = getMatchFn(pattern)
+    return data => !matchFn(data)
 }
 
 /**
@@ -290,7 +317,8 @@ export function not(pattern)
  */
 export function anyOf(...patterns) 
 {
-    return data => patterns.some(pattern => matches(data, pattern))
+    let matchFns = patterns.map(pattern => getMatchFn(pattern))
+    return data => matchFns.some(fn => fn(data))
 }
 
 /**
@@ -301,8 +329,9 @@ export function anyOf(...patterns)
  */
 export function allOf(...patterns)
 {
-    return data => patterns
-        .map(pattern => matches(data, pattern))
+    let matchFns = patterns.map(pattern => getMatchFn(pattern))
+    return data => matchFns
+        .map(matchFn => matchFn(data))
         .filter(value => !value)
         .length===0
 }
@@ -337,16 +366,17 @@ const DataProxyHandler = {
             switch(property) {
                 case 'where':
                     return function(shape) {
+                        let matchFn = getMatchFn(shape)
                         return new Proxy(target
-                            .filter(element => matches(element, shape))
+                            .filter(element => matchFn(element))
                             , DataProxyHandler)
                     }
                 break
                 case 'select':
                     return function(filter) {
-                        let selector = getSelector(filter)
+                        let selectFn = getSelectFn(filter)
                         return new Proxy(target
-                            .map(element => selector(element))
+                            .map(element => selectFn(element))
                             , DataProxyHandler)
                     }
                 break
@@ -370,7 +400,7 @@ const DataProxyHandler = {
         if (target && typeof target==='object') {
             if (property==='select') {
                 return function(filter) {
-                    let selector = getSelector(filter)
+                    let selector = getSelectFn(filter)
                     return new Proxy(selector(target), DataProxyHandler)
                 }
             }
