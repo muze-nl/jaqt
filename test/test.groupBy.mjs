@@ -1,4 +1,4 @@
-import { _, from, asc, desc, sum, avg, count, max, min } from '../src/whereselect.mjs'
+import { _, from, asc, desc, sum, avg, count, max, min } from '../src/jaqt.mjs'
 import tap from 'tap'
 
 const data = [

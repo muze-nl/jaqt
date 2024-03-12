@@ -24,7 +24,9 @@ function isObject(data)
  */
 function getSelectFn(filter) {
     let fns = []
-    for (const [filterKey, filterValue] of Object.entries(filter)) {
+    if (filter instanceof Function) {
+        fns.push(filter)
+    } else for (const [filterKey, filterValue] of Object.entries(filter)) {
         if (isObject(filterValue)) {
             fns.push( (data) => { 
                 return {

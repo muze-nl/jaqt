@@ -1,4 +1,4 @@
-import { _, from, not, anyOf, allOf } from '../src/whereselect.mjs'
+import { _, from, not, anyOf, allOf } from '../src/jaqt.mjs'
 import tap from 'tap'
 
 const data = [

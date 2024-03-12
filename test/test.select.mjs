@@ -1,4 +1,4 @@
-import { _, from, asc, desc } from '../src/whereselect.mjs'
+import { _, from, asc, desc } from '../src/jaqt.mjs'
 import tap from 'tap'
 
 const data = [
@@ -64,6 +64,17 @@ tap.test('select-function', t => {
 	t.same(result[0].name,data[0].name+' '+data[0].lastName)
 	t.same(result[1].name,data[1].name+' '+data[1].lastName)
 	t.end()	
+})
+
+tap.test('select-single-function', t => {
+	let fn = (data) => {
+		return { name: data.name + ' ' + data.lastName }
+	}
+	let result = from(data).select(fn)
+	t.same(result[0].name,data[0].name+' '+data[0].lastName)
+	t.same(result[1].name,data[1].name+' '+data[1].lastName)
+	t.end()	
+
 })
 
 tap.test('select-deep', t => {
