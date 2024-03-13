@@ -512,6 +512,9 @@ const handler = {
         //should probably return a new Proxy for getVal
         //with element[property] as the data
         return (element,key,context) => {
+            if (!element) {
+                return null
+            }
             if (context=='groupBy') {
                 key.push(element[property])
             } else {

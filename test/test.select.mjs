@@ -6,13 +6,17 @@ const data = [
 		name: 'John',
 		lastName: 'Doe',
 		friends: [],
-		dob: '1972-09-20'
+		dob: '1972-09-20',
+		isnull: null,
+		hasNull: [ null ]
 	},
 	{
 		name: 'Jane',
 		lastName: 'Doe',
 		friends: [],
-		dob: '1976-02-27'
+		dob: '1976-02-27',
+		isNull: null,
+		hasNull: [null]
 	}
 ]
 
@@ -223,4 +227,44 @@ tap.test('select-null', t => {
 	let check = typeof result[0].foo == 'undefined'
 	t.ok(check)
 	t.end()
+})
+
+tap.test('select-from-null', t => {
+	let result = from(null)
+	.select({
+		name: _,
+		foo: _
+	})
+	let check = result == null
+	t.ok(check)
+	t.end()
+})
+
+tap.test('select-from-null-child', t => {
+	let result = from(data)
+	.select({
+		name: _,
+		foo: {
+			name: _
+		}
+	})
+	let check = result[0].foo == null
+	t.ok(check)
+	t.end()
+})
+
+tap.test('select-null-property', t => {
+	let result = from(data)
+	.select({
+		name: _,
+		isNull: {
+			bar: _.name
+		},
+		hasNull: {
+			bar: _.name
+		}
+	})
+	let check = result[0].foo == null
+	t.ok(check)
+	t.end()	
 })
