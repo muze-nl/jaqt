@@ -44,7 +44,7 @@ Or use it directly from a CDN like jsdeliver.net:
 In the remainder of the documentation, we're using the following import statement to make all methods available as global functions. This makes all the examples shorter and easier to read:
 
 ```javascript
-import { _, from, not, anyOf, allOf, asc, desc, sum, avg, count, max, min } from 'jaqt'
+import { _, from, not, anyOf, allOf, asc, desc, sum, avg, count, max, min, one, many, first } from 'jaqt'
 ```
 
 ## First steps
