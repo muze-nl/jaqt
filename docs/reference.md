@@ -1,7 +1,13 @@
 # jaqt reference manual
 
 - [from()](#from)
+- [where()](#where)
+   - [not()](#not)
+   - [anyOf()](#anyOf)
+   - [allOf()](#allOf)
 - [select()](#select)
+	- [one()](#one)
+	- [meny()](#many)
 - [orderBy()](#orderBy)
 - [groupBy()](#groupBy)
 	- [count()](#count)
@@ -9,10 +15,6 @@
 	- [avg()](#avg)
 	- [min()](#min)
 	- [max()](#max)
-- [where()](#where)
-   - [not()](#not)
-   - [anyOf()](#anyOf)
-   - [allOf()](#allOf)
 - [nested queries](#nested)
 
 <a name="from"></a>
@@ -116,6 +118,71 @@ from(data)
 .select({
 	...names,
 	foo: 'bar'
+})
+```
+
+<a name="one"></a>
+### one()
+
+If your select can return one or an array of values, and you want to make sure that it always returns just one value, you can use this function like this:
+
+```javascript
+const data = [
+	{
+		name: "John",
+		friends: ["Jane","Joss"]
+	},
+	{
+		name: "Jane",
+		friends: "John"
+	}
+]
+
+from(data)
+.select({
+	friends: one(_)
+})
+```
+
+You can additionally specify which one to get, the first or the last (last is the default):
+
+```javascript
+from(data)
+.select({
+	friend: one(_.friends, 'first')
+})
+```
+
+For even more control, you can also pass a function to return the correct value. This function
+is only ever called if there are multiple values in an array:
+
+```javascript
+from(data)
+.select({
+	friend: one(_.friends, a => a.pop())
+})
+```
+
+<a name="many"></a>
+### many()
+
+If your select can return one value or an array of values, and you want to make sure that it always returns an array, you can use this function like this:
+
+```javascript
+const data = [
+	{
+		name: "John",
+		friends: ["Jane","Joss"]
+	},
+	{
+		name: "Jane",
+		friends: "John"
+	}
+]
+
+from(data)
+.select({
+	friends: many(_)
 })
 ```
 

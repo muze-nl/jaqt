@@ -269,7 +269,7 @@ tap.test('select-null-property', t => {
 	t.end()	
 })
 
-tap.test('select-as-array', t => {
+tap.test('select-many', t => {
 	let result = from(data)
 	.select({
 		name: many(_)
@@ -288,3 +288,22 @@ tap.test('select-one', t => {
 	t.end()
 })
 
+tap.test('select-one-function', t => {
+	const mdata = [
+		{
+			name: "John",
+			friends: ["Jane","Joss"]
+		},
+		{
+			name: "Jane",
+			friends: "John"
+		}
+	]
+	let result = from(mdata)
+	.select({
+		friend: one(_.friends, a => a.pop())
+	})
+	t.same(result[0].friend, 'Joss')
+	t.same(result[1].friend, 'John')
+	t.end()
+})
