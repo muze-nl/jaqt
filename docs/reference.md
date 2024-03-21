@@ -186,6 +186,32 @@ from(data)
 })
 ```
 
+<a name="first"></a>
+### first()
+
+When your data can have different fields, and you want to select the first field that fits your criteria, this function can help you:
+
+```javascript
+const data = [
+	{
+		name: 'John'
+	},
+	{
+		lastName: 'Doe'
+	},
+	{
+		noName: 'Jane'
+	}
+]
+
+from(data)
+.select({
+	name: first(_.name, _.lastName, 'Unknown')
+})
+```
+
+This function will test each parameter, in order. The first selection that returns a value is used. If you pass in a parameter that isn't a function, that value will be used as the result if none of the previous selections matched anything.
+
 <a name="orderBy"></a>
 ### orderBy()
 
