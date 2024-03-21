@@ -1,18 +1,41 @@
 /**
- * checks if data is an object and not null, String, Number, Boolean or Array
+ * checks if data is a plain object and not null, String, Number, Boolean or Array or other classes
  * 
  * @param  {mixed}  data The data to check
- * @return {Boolean}     True if data is an object and not null, String, Number, Boolean or Array
+ * @return {Boolean}     True if data is a plain object
  */
-function isObject(data) 
+function isPlainObject(data) 
 {
-    return typeof data === 'object' && !(
-        data instanceof String
-        || data instanceof Number
-        || data instanceof Boolean
-        || Array.isArray(data)
-        || data === null
-    )
+    return data?.constructor === Object 
+        || data?.constructor === undefined // object with null prototype: Object.create(null)
+}
+
+export function one(selectFn, whichOne='last') {
+    return (data, key, context) => {
+        let result = selectFn(data, key, context)
+        if (Array.isArray(result)) {
+            if (whichOne=='last') {
+                result = result.pop()
+            } else if (whichOne=='first') {
+                result = result.shift()
+            } else if (typeof whichOne == 'function') {
+                result = whichOne(result)
+            }
+        }
+        return result
+    }
+}
+
+export function many(selectFn) {
+    return (data, key, context) => {
+        let result = selectFn(data, key, context)
+        if (result == null) {
+            result = []
+        } else if (!Array.isArray(result)) {
+            result = [result]
+        }
+        return result
+    }
 }
 
 /**
@@ -27,7 +50,7 @@ function getSelectFn(filter) {
     if (filter instanceof Function) {
         fns.push(filter)
     } else for (const [filterKey, filterValue] of Object.entries(filter)) {
-        if (isObject(filterValue)) {
+        if (isPlainObject(filterValue)) {
             fns.push( (data) => { 
                 return {
                     [filterKey]: from(data[filterKey]).select(filterValue)
@@ -77,7 +100,7 @@ export function getMatchFn(pattern)
         fns.push((data) => pattern.test(data))
     } else if (pattern instanceof Function) {
         fns.push((data) => pattern(data))
-    } else if (isObject(pattern)) {
+    } else if (isPlainObject(pattern)) {
         let patternMatches = {}
         for (const [wKey, wVal] of Object.entries(pattern)) {
             patternMatches[wKey] = getMatchFn(wVal)
@@ -86,7 +109,7 @@ export function getMatchFn(pattern)
             if (Array.isArray(data)) {
                 return data.filter(element => matchFn(element)).length>0
             }
-            if (!isObject(data)) {
+            if (!isPlainObject(data)) {
                 return false
             }
             for (let wKey in patternMatches) {
@@ -140,7 +163,7 @@ export function getSortFn(pattern) {
     for (let [key,compare] of comparisons) {
         if (compare instanceof Function) {
             fns.push(compare)
-        } else if (isObject(compare)) {
+        } else if (isPlainObject(compare)) {
             let subFn = getSortFn(compare)
             fns.push((a,b) => subFn(a[key],b[key]))
         } else if (compare === asc) {
@@ -165,6 +188,13 @@ export function getSortFn(pattern) {
     }
 }
 
+
+/**
+ * Returns a function that groups an array by one or more values defined in the pattern
+ * 
+ * @param (object) data     The data to parse and get the group from
+ * @param (object) pattern  The groups and instructions
+ */
 function groupBy(data, pattern) {
     let groups = {}
 
@@ -190,15 +220,12 @@ function groupBy(data, pattern) {
     /**
      * select the values of the pattern applied to data
      * and set those as group keys in the result
-     * @param  {[type]} data    [description]
-     * @param  {[type]} pattern [description]
-     * @return {[type]}         [description]
      */
     function getMatchingGroups(data, pattern) {
         let value = {}
         for (let prop in pattern) {
             let innerValue, defaultValue=[]
-            if (isObject(pattern[prop])) {
+            if (isPlainObject(pattern[prop])) {
                 if (Array.isArray(data[prop])) {
                     for (let v of data[prop]) {
                         Object.assign(value, getMatchingGroups(v, pattern[prop]))
@@ -237,6 +264,12 @@ function groupBy(data, pattern) {
     return groups
 }
 
+/**
+ * Creates a function to sum (add) all grouped values, assumes/enforces all values are floats
+ * 
+ * @param fetchFn   the function that fetches the correct value, e.g. _.price
+ * @return Function function (value, accumulator) => accumulator + value
+ */
 export function sum(fetchFn) {
     return (o,a) => {
         if (Array.isArray(a)) {
@@ -247,6 +280,12 @@ export function sum(fetchFn) {
     }
 }
 
+/**
+ * Creates a function to average all grouped values, assumes/enforces all values are floats 
+ * 
+ * @param fetchFn   the function that fetches the correct value, e.g. _.price
+ * @return Function function (value, accumulator) => average(accumulator + value)
+ */
 export function avg(fetchFn) {
     return (o,a) => {
         if (Array.isArray(a)) {
@@ -260,9 +299,29 @@ export function avg(fetchFn) {
     }
 }
 
+/**
+ * Creates a function that removes duplicate values from the grouped data
+ * 
+ * @param fetchFn   the function that fetches the correct value, e.g. _.name
+ * @return Function 
+ */
+export function distinct(fetchFn) {
+    return (o, a) => {
+        let v = fetchFn(o)
+        if (!a.includes[v]) {
+            a.push(v)
+        }
+        return a
+    }
+}
+
+/**
+ * Creates a function to count all grouped values
+ * 
+ * @param fetchFn   the function that fetches the correct value, e.g. _.price
+ * @return Function function (value, accumulator) => accumulator + 1
+ */
 export function count() {
-    //FIXME: add fetchFn and count distinct fetchFn results
-    //e.g. count(_.name) -> counts all distinct values for _.name
     return (o, a) => {
         if (Array.isArray(a)) {
             a = 0
@@ -271,6 +330,12 @@ export function count() {
     }
 }
 
+/**
+ * Creates a function to find the maximum value in all grouped values, assumes/enforces all values are floats 
+ * 
+ * @param fetchFn   the function that fetches the correct value, e.g. _.price
+ * @return Function function (value, accumulator) => Math.max(accumulator, value)
+ */
 export function max(fetchFn) {
     return (o,a) => {
         if (Array.isArray(a)) {
@@ -284,6 +349,12 @@ export function max(fetchFn) {
     }
 }
 
+/**
+ * Creates a function to find the minimum value in all grouped values, assumes/enforces all values are floats 
+ * 
+ * @param fetchFn   the function that fetches the correct value, e.g. _.price
+ * @return Function function (value, accumulator) => Math.min(accumulator, value)
+ */
 export function min(fetchFn) {
     return (o,a) => {
         if (Array.isArray(a)) {

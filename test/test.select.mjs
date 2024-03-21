@@ -1,4 +1,4 @@
-import { _, from, asc, desc } from '../src/jaqt.mjs'
+import { _, from, asc, desc, many, one } from '../src/jaqt.mjs'
 import tap from 'tap'
 
 const data = [
@@ -268,3 +268,23 @@ tap.test('select-null-property', t => {
 	t.ok(check)
 	t.end()	
 })
+
+tap.test('select-as-array', t => {
+	let result = from(data)
+	.select({
+		name: many(_)
+	})
+	t.same(result[0].name, ['John'])
+	t.end()
+})
+
+tap.test('select-one', t => {
+	let result = from(data)
+	.select({
+		name: _,
+		friend: one(o => from(o.friends).select(_.name))
+	})
+	t.same(result[0].friend, 'Jane')
+	t.end()
+})
+
