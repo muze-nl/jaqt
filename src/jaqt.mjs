@@ -38,6 +38,23 @@ export function many(selectFn) {
     }
 }
 
+export function first(...args) {
+    return (data, key, context) => {
+        let result = null
+        for (let arg of args) {
+            if (typeof arg == 'function') {
+                result = arg(data, key, context)
+                if (result!=null) {
+                    return result
+                }
+            } else {
+                return arg
+            }
+        }
+        return null
+    }
+}
+
 /**
  * implements a minimal graphql-alike selection syntax, using plain javascript
  * use with from(...arr).select

@@ -1,4 +1,4 @@
-import { _, from, asc, desc, many, one } from '../src/jaqt.mjs'
+import { _, from, asc, desc, many, one, first } from '../src/jaqt.mjs'
 import tap from 'tap'
 
 const data = [
@@ -305,5 +305,27 @@ tap.test('select-one-function', t => {
 	})
 	t.same(result[0].friend, 'Joss')
 	t.same(result[1].friend, 'John')
+	t.end()
+})
+
+tap.test('select-first', t => {
+	const mdata = [
+		{
+			name: 'John'
+		},
+		{
+			lastName: 'Doe'
+		},
+		{
+			noName: 'Jane'
+		}
+	]
+	let result = from(mdata)
+	.select({
+		name: first(_.name, _.lastName, 'Unknown')
+	})
+	t.same(result[0].name, 'John')
+	t.same(result[1].name, 'Doe')
+	t.same(result[2].name, 'Unknown')
 	t.end()
 })
