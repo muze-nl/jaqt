@@ -1,6 +1,6 @@
 {
 	"name": "jaqt",
-	"version": "0.7.0",
+	"version": "0.7.1",
 	"description": "Javascript Queries and Transformations, allows GraphQL-like functionality on Javascript arrays of objects.",
 	"type": "module",
 	"author": "Auke van Slooten <auke@muze.nl>",
