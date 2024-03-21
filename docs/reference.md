@@ -8,6 +8,7 @@
 - [select()](#select)
 	- [one()](#one)
 	- [meny()](#many)
+	- [first()](#first)
 - [orderBy()](#orderBy)
 - [groupBy()](#groupBy)
 	- [count()](#count)
