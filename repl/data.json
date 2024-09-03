@@ -1,0 +1,70 @@
+{
+	"people": [
+		{
+			"name": "Luke",
+			"lastName": "Skywalker",
+			"metrics": {
+				"height": 172,
+				"hair_color":"blond",
+				"skin_color":"fair",
+				"eye_color":"blue"
+			},
+			"gender": "male"
+		},
+		{
+			"name": "Darth",
+			"lastName": "Vader",
+			"metrics":{
+				"height":"20200",
+				"hair_color":"none",
+				"skin_color":"white",
+				"eye_color":"yellow"
+			},
+			"gender": "male"
+		},
+		{
+			"name": "Leia",
+			"lastName": "Organa",
+			"metrics":{
+				"height": 150,
+	 			"hair_color":"brown",
+				"skin_color":"light",
+				"eye_color":"brown"
+   			},
+			"gender": "female"
+		},
+		{
+			"name": "R2-D2",
+			"height": 96,
+			"gender": "n/a",
+			"metrics": {
+				"hair_color":"n/a",
+				"skin_color":"white, blue",
+				"eye_color":"red"
+			}
+		}
+	],
+	"films":[
+	   	{
+	   		"id": "http://swapi.co/api/films/1/",
+			"title":"A New Hope",
+			"episode_id":4,
+			"director":"George Lucas",
+			"release_date":"1977-05-25"
+		},
+		{
+			"id":"http://swapi.co/api/films/3/",
+			"title":"Return of the Jedi",
+			"episode_id":6,
+			"director":"Richard Marquand",
+			"release_date":"1983-05-25"
+		},
+		{
+			"id":"http://swapi.co/api/films/2/",
+			"title":"The Empire Strikes Back",
+			"episode_id":5,
+			"director":"Irvin Kershner",
+			"release_date":"1980-05-17"
+		}
+	]	   
+}
