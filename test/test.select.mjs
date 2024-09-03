@@ -366,6 +366,10 @@ tap.test('select-first', t => {
 		},
 		{
 			noName: 'Jane'
+		},
+		{
+			name: null,
+			lastName: ''
 		}
 	]
 	let result = from(mdata)
@@ -375,5 +379,6 @@ tap.test('select-first', t => {
 	t.same(result[0].name, 'John')
 	t.same(result[1].name, 'Doe')
 	t.same(result[2].name, 'Unknown')
+	t.same(result[3].name, 'Unknown')
 	t.end()
 })

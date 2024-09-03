@@ -44,7 +44,7 @@ export function first(...args) {
         for (let arg of args) {
             if (typeof arg == 'function') {
                 result = arg(data, key, context)
-                if (result!=null) {
+                if (result!=null && result!==undefined && result!=="") {
                     return result
                 }
             } else {
