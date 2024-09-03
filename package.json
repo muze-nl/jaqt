@@ -18,7 +18,8 @@
 	"license": "MIT",
 	"main": "./src/jaqt.mjs",
 	"scripts": {
-		"test": "tap test/*.mjs"
+		"test": "tap test/*.mjs",
+		"repl": "NODE_REPL_HISTORY=repl/history.repl node repl/repl.mjs"
 	},
 	"repository": {
 		"type": "git",
