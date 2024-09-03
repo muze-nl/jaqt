@@ -1,4 +1,4 @@
-import { _, from, asc, desc, sum, avg, count, max, min } from '../src/jaqt.mjs'
+import { _, from, asc, desc, sum, avg, count, max, min, distinct } from '../src/jaqt.mjs'
 import tap from 'tap'
 
 const data = [
@@ -72,22 +72,26 @@ const products = [
 	{
 		category: "Car",
 		name: "Cadillac",
+		color: "red",
 		price: 50000
 	},
 	{
 		category: "Car",
 		name: "Mini",
-		price: 25000
+		price: 25000,
+		color: "red"
 	},
 	{
 		category: "Bike",
 		name: "Gazelle",
-		price: 2000
+		price: 2000,
+		color: "blue"
 	},
 	{
 		category: "Bike",
 		name: "Sparte",
-		price: 1500
+		price: 1500,
+		color: "green"
 	}
 ]	
 
@@ -149,3 +153,14 @@ tap.test("groupby-null", t => {
 	t.ok(grouped, null)
 	t.end()
 })
+
+tap.test("groupby-disting", t => {
+	let grouped = from(products)
+	.groupBy({
+		category: distinct(_.color)
+	})
+	console.log(grouped)
+	t.same(Object.keys(grouped).length, 2)
+	t.end()
+})
+

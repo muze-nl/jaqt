@@ -6,6 +6,9 @@ const data = [
 		name: 'John',
 		lastName: 'Doe',
 		friends: [],
+		metrics: {
+			hair_color: "brown"
+		},
 		dob: '1972-09-20',
 		isnull: null,
 		hasNull: [ null ]
@@ -14,11 +17,43 @@ const data = [
 		name: 'Jane',
 		lastName: 'Doe',
 		friends: [],
+		metrics: {
+			hair_color: "blond"
+		},
 		dob: '1976-02-27',
 		isNull: null,
 		hasNull: [null]
 	}
 ]
+
+const data2 = JSON.parse(`
+{
+	"people": [
+		{
+			"name": "Luke",
+			"lastName": "Skywalker",
+			"metrics": {
+				"height": 172,
+				"hair_color":"blond",
+				"skin_color":"fair",
+				"eye_color":"blue"
+			},
+			"gender": "male"
+		},
+		{
+			"name": "Darth",
+			"lastName": "Vader",
+			"metrics":{
+				"height":"20200",
+				"hair_color":"none",
+				"skin_color":"white",
+				"eye_color":"yellow"
+			},
+			"gender": "male"
+		}
+	]
+}
+`)
 
 data[0].friends.push(data[1])
 data[1].friends.push(data[0])
@@ -89,6 +124,19 @@ tap.test('select-deep', t => {
 	})
 	t.same(result[0].friends[0].name, data[0].friends[0].name)
 	t.same(result[1].friends[0].name, data[1].friends[0].name)
+	t.end()
+})
+
+tap.test('select-deep-object', t => {
+	console.log('hier',JSON.stringify(data2.people[0]))
+	let result = from(data2.people).select({
+		name: _,
+		metrics: {
+			hair_color: _
+		}
+	})
+	t.same(result[0].metrics.hair_color, data2.people[0].metrics.hair_color)
+	t.same(result[1].metrics.hair_color, data2.people[1].metrics.hair_color)
 	t.end()
 })
 
