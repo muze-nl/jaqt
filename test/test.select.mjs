@@ -128,7 +128,6 @@ tap.test('select-deep', t => {
 })
 
 tap.test('select-deep-object', t => {
-	console.log('hier',JSON.stringify(data2.people[0]))
 	let result = from(data2.people).select({
 		name: _,
 		metrics: {
@@ -137,6 +136,15 @@ tap.test('select-deep-object', t => {
 	})
 	t.same(result[0].metrics.hair_color, data2.people[0].metrics.hair_color)
 	t.same(result[1].metrics.hair_color, data2.people[1].metrics.hair_color)
+	t.end()
+})
+
+tap.test('select-deep-value', t => {
+	let result = from(data2.people).select({
+		hair: _.metrics.hair_color 
+	})
+	t.same(result[0].hair, data2.people[0].metrics.hair_color)
+	t.same(result[1].hair, data2.people[1].metrics.hair_color)
 	t.end()
 })
 
