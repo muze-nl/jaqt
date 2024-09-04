@@ -5,12 +5,14 @@ const data = [
 	{
 		name: 'John',
 		lastName: 'Doe',
-		friends: []
+		friends: [],
+		favorite_color: 'red'
 	},
 	{
 		name: 'Jane',
 		lastName: 'Doe',
-		friends: []
+		friends: [],
+		favorite_color: ['blue','purple']
 	}
 ]
 
@@ -75,6 +77,16 @@ tap.test('where-not', t => {
 	t.end()
 })
 
+tap.test('where-not-any', t => {
+	let result = from(data).where({
+		name: not('John','Jane')
+	}).select({
+		name: _
+	})
+	t.equal(result.length, 0)
+	t.end()
+})
+
 tap.test('where-anyOf', t => {
 	let result = from(data).where({
 		name: anyOf('John','Jane')
@@ -86,6 +98,37 @@ tap.test('where-anyOf', t => {
 	t.end()
 })
 
+tap.test('where-array', t => {
+	let result = from(data).where({
+		name: ['John','Jane']
+	}).select({
+		name: _
+	})
+	t.same(result[0], { name: 'John'})
+	t.same(result[1], { name: 'Jane'})
+	t.end()
+})
+
+tap.test('where-array-match', t => {
+	let result = from(data).where({
+		favorite_color: 'blue'
+	}).select({
+		name: _
+	})
+	t.same(result[0], { name: 'Jane'})
+	t.end()	
+})
+
+tap.test('where-array-match-array', t => {
+	let result = from(data).where({
+		favorite_color: ['blue','red']
+	}).select({
+		name: _
+	})
+	t.same(result[0], { name: 'John'})
+	t.same(result[1], { name: 'Jane'})
+	t.end()	
+})
 tap.test('where-allOf', t => {
 	let result = from(data).where(
 		 allOf(
@@ -103,7 +146,17 @@ tap.test('where-allOf', t => {
 	t.equal(result.length, 1)
 	t.end()
 })
-
+tap.test('where-allOf-array', t => {
+	let result = from(data).where({
+		favorite_color: allOf('blue','purple')
+	})
+	.select({
+		name: _
+	})
+	t.same(result[0], {name: 'Jane'})
+	t.equal(result.length, 1)
+	t.end()
+})
 tap.test('where-string-object', t => {
 	const data = [
 		{
