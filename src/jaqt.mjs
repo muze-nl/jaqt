@@ -112,7 +112,7 @@ export function getMatchFn(pattern)
 {
     let fns = []
     if (Array.isArray(pattern)) {
-        throw new Error('not yet implemented')
+        fns.push(anyOf(...pattern))
     } else if (pattern instanceof RegExp) {
         fns.push((data) => pattern.test(data))
     } else if (pattern instanceof Function) {
@@ -139,7 +139,13 @@ export function getMatchFn(pattern)
         }
         fns.push(matchFn)
     } else {
-        fns.push((data) => pattern==data)
+        fns.push((data) => {
+            if (Array.isArray(data)) {
+                return data.filter(element => pattern==element).length>0
+            } else {
+                return pattern==data
+            }
+        })
     }
     if (fns.length==1) {
         return fns[0]
@@ -393,7 +399,7 @@ export function min(fetchFn) {
  * @param  {mixed} pattern The pattern to match not
  * @return {function}      A function that inverts the match, with a single data parameter
  */
-export function not(pattern) 
+export function not(...pattern) 
 {
     let matchFn = getMatchFn(pattern)
     return data => !matchFn(data)
@@ -556,32 +562,31 @@ export function from(data)
 }
 
 /**
- * This is the function that _ is mapped to
- * It returns either the data given, or if a key is set, 
- * it returns the value of data[key]
- * This allows you to use either _ or _.key in the select()
- * queries
+ * This is the function factory that builds the _ function
+ * It will return a function that walks over the root object to
+ * return the correct data
  * 
- * @param  {mixed} data Any data
- * @param  {string} key Optional key for data objects in select context or group in groupBy context
- * @param  {string} context Optional, whether in select or groupBy context
- * @param  {array}  group Optional, contains group in groupBy context
- * @return {mixed}      Data or data[key]
+ * @param {array} path The list of properties to access in order
+ * @return {function} The accessor function that returns the data matching the path
  */
-function getVal(data, key, context) 
-{
-    switch(context) {
-        case 'groupBy':
-            key.push(data)
-        break
-        case 'select':
-        default:
-            let result = data
-            if (key) {
-                result = data ? data[key] : null
+function getPointerFn(path) {
+    /**
+     * The json pointer function
+     * @param  {mixed} data Any data
+     * @param  {string} key Optional key for data objects in select context or group in groupBy context
+     * @return {mixed} data or data[key]
+     */
+    return (data, key) => {
+        if (path?.length>0) {
+            for (let prop of path) {
+                data = data?.[prop]
             }
-            return result
-        break
+            return data
+        } else if (key) {
+            return data[key]
+        } else {
+            return data
+        }
     }
 }
 
@@ -592,27 +597,22 @@ function getVal(data, key, context)
  * 
  * @type {Object}
  */
-const handler = {
-    get(target, property) 
-    {
-        //@FIXME: this implementation only allows for _.name
-        //not for _.films.title for example
-        //should probably return a new Proxy for getVal
-        //with element[property] as the data
-        return (element,key,context) => {
-            if (!element) {
-                return null
-            }
-            if (context=='groupBy') {
-                key.push(element[property])
-            } else {
-                return element[property]
-            }
+const pointerHandler = (path) => {
+    if (!path) {
+        path = []
+    }
+    return {
+        get(target, property)
+        {
+            // creates a new path, which is passed to pointerFn en pointerHandler
+            // so it is kept in a new stack frame
+            let newpath = path.concat([property])
+            return new Proxy(getPointerFn(newpath), pointerHandler(newpath))
+        },
+        apply(target, thisArg, argumentsList)
+        {
+            return target(...argumentsList)
         }
-    },
-    apply(target, thisArg, argumentsList) 
-    {
-        return target(...argumentsList)
     }
 }
 
@@ -622,4 +622,4 @@ const handler = {
  * 
  * @type {Proxy}
  */
-export const _ = new Proxy(getVal, handler)
+export const _ = new Proxy(getPointerFn(), pointerHandler())
