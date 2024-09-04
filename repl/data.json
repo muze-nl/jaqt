@@ -3,8 +3,8 @@
 		{
 			"name": "Luke",
 			"lastName": "Skywalker",
+			"height": 172,
 			"metrics": {
-				"height": 172,
 				"hair_color":"blond",
 				"skin_color":"fair",
 				"eye_color":"blue"
@@ -14,8 +14,8 @@
 		{
 			"name": "Darth",
 			"lastName": "Vader",
+			"height":"202",
 			"metrics":{
-				"height":"20200",
 				"hair_color":"none",
 				"skin_color":"white",
 				"eye_color":"yellow"
@@ -25,8 +25,8 @@
 		{
 			"name": "Leia",
 			"lastName": "Organa",
+			"height": 150,
 			"metrics":{
-				"height": 150,
 	 			"hair_color":"brown",
 				"skin_color":"light",
 				"eye_color":"brown"
