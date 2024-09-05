@@ -1,6 +1,7 @@
 [![GitHub License](https://img.shields.io/github/license/muze-nl/jaqt)](https://github.com/muze-nl/jaqt/blob/main/LICENSE)
 [![GitHub package.json version](https://img.shields.io/github/package-json/v/muze-nl/jaqt)]()
 [![NPM Version](https://img.shields.io/npm/v/jaqt)](https://www.npmjs.com/package/jaqt)
+[![npm bundle size](https://img.shields.io/bundlephobia/min/jaqt)](https://www.npmjs.com/package/jaqt)
 
 # jaqt: javascript queries and transformations
 
