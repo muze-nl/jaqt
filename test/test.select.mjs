@@ -148,6 +148,16 @@ tap.test('select-deep-value', t => {
 	t.end()
 })
 
+tap.test('select-deep-array-value', t => {
+	let result = from(data)
+	.select({
+		friends: _.friends.name
+	})
+	t.same(result[0].friends[0], data[0].friends[0].name)
+	t.same(result[1].friends[0], data[1].friends[0].name)
+	t.end()
+})
+
 tap.test('object-select', t => {
 	let object = data[0]
 	let result = from(object).select({
