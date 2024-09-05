@@ -211,77 +211,89 @@ export function getSortFn(pattern) {
     }
 }
 
+/**
+ * Like getSelectFn this accepts an object, but function values must be
+ * reducers.
+ * @param  {object|function} filter Which keys with which values you want
+ * @return Function a function that reduces values
+ */
+export function getAggregateFn(filter) {
+    let fns = []
+    if (filter instanceof Function) {
+        fns.push(filter)
+    } else for (const [filterKey, filterValue] of Object.entries(filter)) {
+        if (isPlainObject(filterValue)) {
+            fns.push( (data) => { 
+                return {
+                    [filterKey]: from(data[filterKey]).select(filterValue)
+                }
+            })
+        } else if (filterValue instanceof Function) {
+            fns.push( (data) => {
+                return {
+                    [filterKey]: filterValue(data, filterKey, 'reduce')
+                }
+            })
+        } else {
+            fns.push( (data) => {
+                return {
+                    [filterKey]: filterValue 
+                }
+            })
+        }
+    }
+    if (fns.length==1) {
+        return fns[0]
+    }
+    return (o, a) => {
+        let result = {}
+        for (let fn of fns) {
+            Object.assign(result, fn(o,a))
+        }
+        return result
+    }
+}
+
+/**
+ * This is an alternative implementation of Object.groupBy
+ * With support for objects being part of multiple groups
+ * So if pointerFn() returns an array, each element of the
+ * array is a group
+ * 
+ */
+function getMatchingGroups(data, pointerFn) {
+    let result = {}
+    for (let entity of data) {
+        let groups = pointerFn(entity)
+        if (!Array.isArray(groups)) {
+            groups = [groups]
+        }
+        for (let group of groups) {
+            if (typeof group!='string' && !(group instanceof String)) {
+                console.warn('JAQT: groupBy(selector) can only handle string values, got:',group)
+                continue
+            }
+            if (!result[group]) {
+                result[group] = []
+            }
+            result[group].push(entity)
+        }
+    }
+    return result
+}
 
 /**
  * Returns a function that groups an array by one or more values defined in the pattern
  * 
  * @param (object) data     The data to parse and get the group from
- * @param (object) pattern  The groups and instructions
+ * @param (array) properties  The properties to group by, in order, should be pointer functions
  */
-function groupBy(data, pattern) {
-    let groups = {}
-
-    function addEntity(matchingGroups, entity, groups) {
-        for (let key in matchingGroups) {
-            if (typeof groups[key] == 'undefined') {
-                groups[key] = []
-            }
-            if (typeof matchingGroups[key] == 'function') {
-                let result = matchingGroups[key](entity,groups[key],'groupBy')
-                if (typeof result != 'undefined') {
-                    groups[key] = result
-                }
-            } else {
-                if (Array.isArray(groups[key])) {
-                    groups[key] = {}
-                }
-                addEntity(matchingGroups[key], entity, groups[key])
-            }
-        }
-    }
-
-    /**
-     * select the values of the pattern applied to data
-     * and set those as group keys in the result
-     */
-    function getMatchingGroups(data, pattern) {
-        let value = {}
-        for (let prop in pattern) {
-            let innerValue, defaultValue=[]
-            if (isPlainObject(pattern[prop])) {
-                if (Array.isArray(data[prop])) {
-                    for (let v of data[prop]) {
-                        Object.assign(value, getMatchingGroups(v, pattern[prop]))
-                    }
-                } else {
-                    Object.assign(value, getMatchingGroups(data[prop], pattern[prop]))
-                }
-                continue
-            } else if (typeof pattern[prop] == 'function') {
-                defaultValue = pattern[prop]
-            }
-            if (data && typeof data[prop] != 'undefined') {
-                innerValue = data[prop]
-                if (Array.isArray(innerValue)) {
-                    for (let v of innerValue) {
-                        value[v] = defaultValue
-                    }
-                } else {
-                    value[innerValue] = defaultValue
-                }
-            }
-        }
-        return value
-    }
-
-    for (let entity of data) {
-        let matchingGroups = getMatchingGroups(entity, pattern)
-        if (Array.isArray(matchingGroups)) {
-            for (let g of matchingGroups) {
-                addEntity(g, entity, groups)                    
-            }
-        } else {
-            addEntity(matchingGroups, entity, groups)
+function groupBy(data, pointerFunctions) {
+    let pointerFn = pointerFunctions.shift()
+    let groups = getMatchingGroups(data, pointerFn)
+    if (pointerFunctions.length) {
+        for (let group in groups) {
+            groups[group] = groupBy(groups[group], pointerFunctions)
         }
     }
     return groups
@@ -294,7 +306,7 @@ function groupBy(data, pattern) {
  * @return Function function (value, accumulator) => accumulator + value
  */
 export function sum(fetchFn) {
-    return (o,a) => {
+    return (a,o) => {
         if (Array.isArray(a)) {
             a = 0
         }
@@ -310,7 +322,7 @@ export function sum(fetchFn) {
  * @return Function function (value, accumulator) => average(accumulator + value)
  */
 export function avg(fetchFn) {
-    return (o,a) => {
+    return (a,o) => {
         if (Array.isArray(a)) {
             a = new Number(0)
             a.count = 0
@@ -329,7 +341,7 @@ export function avg(fetchFn) {
  * @return Function 
  */
 export function distinct(fetchFn) {
-    return (o, a) => {
+    return (a, o) => {
         let v = fetchFn(o)
         if (!a.includes[v]) {
             a.push(v)
@@ -345,7 +357,7 @@ export function distinct(fetchFn) {
  * @return Function function (value, accumulator) => accumulator + 1
  */
 export function count() {
-    return (o, a) => {
+    return (a, o) => {
         if (Array.isArray(a)) {
             a = 0
         }
@@ -360,7 +372,7 @@ export function count() {
  * @return Function function (value, accumulator) => Math.max(accumulator, value)
  */
 export function max(fetchFn) {
-    return (o,a) => {
+    return (a,o) => {
         if (Array.isArray(a)) {
             a = Number.NEGATIVE_INFINITY
         }
@@ -379,7 +391,7 @@ export function max(fetchFn) {
  * @return Function function (value, accumulator) => Math.min(accumulator, value)
  */
 export function min(fetchFn) {
-    return (o,a) => {
+    return (a,o) => {
         if (Array.isArray(a)) {
             a = Number.POSITIVE_INFINITY
         }
@@ -476,6 +488,14 @@ const DataProxyHandler = {
                             , DataProxyHandler)
                     }
                 break
+                case 'reduce':
+                    return function(pattern) {
+                        let aggregateFn = getAggregateFn(pattern)
+                        return new Proxy(target
+                            .reduce(element => aggregateFn(element))
+                            , DataProxyHandler)
+                    }
+                break
                 case 'orderBy':
                     return function(pattern) {
                         let sortFn = getSortFn(pattern)
@@ -485,10 +505,10 @@ const DataProxyHandler = {
                     }
                 break
                 case 'groupBy':
-                    return function(groups) {
+                    return function(...groups) {
                         let temp = groupBy(target, groups)
                         return new Proxy(temp
-                            , DataProxyHandler)
+                            , GroupByProxyHandler)
                     }
                 break
             }
@@ -505,6 +525,55 @@ const DataProxyHandler = {
             return new Proxy(target[property], FunctionProxyHandler)
         }
         return target[property]
+    }
+}
+
+const GroupByProxyHandler = {
+    get(target, property)
+    {
+        switch(property) {
+            case 'select':
+                return function(filter) {
+                    let selectFn = getSelectFn(filter)
+                    let result = {}
+                    for (let group in target) {
+                        if (Array.isArray(target[group])) {
+                            result[group] = new Proxy(target[group].map(selectFn), DataProxyHandler)
+                        } else {
+                            result[group] = new Proxy(target[group], GroupByProxyHandler)
+                        }
+                    }
+                    return result
+                }
+            break
+            case 'reduce':
+                return function(pattern) {
+                    let aggregateFn = getAggregateFn(pattern)
+                    let result = {}
+                    for (let group in target) {
+                        if (Array.isArray(target[group])) {
+                            let temp = target[group].reduce(aggregateFn, [])
+                            if (Array.isArray(temp)) {
+                                result[group] = new Proxy(temp, DataProxyHandler)
+                            } else if (isPlainObject(temp)) {
+                                result[group] = new Proxy(temp, GroupByProxyHandler)
+                            } else {
+                                result[group] = temp
+                            }
+                        } else {
+                            result[group] = new Proxy(target[group], GroupByProxyHandler)
+                        }
+                    }
+                    return result
+                }
+            break
+            default:
+                if (Array.isArray(target[property])) {
+                    return from(target[property])
+                }
+                return target[property]
+            break
+        }        
     }
 }
 
@@ -578,8 +647,15 @@ function getPointerFn(path) {
      */
     return (data, key) => {
         if (path?.length>0) {
-            for (let prop of path) {
-                data = data?.[prop]
+            let localPath = path.slice()
+            let prop
+            while(prop = localPath.shift()) {
+                if (Array.isArray(data) && parseInt(prop)!=prop) {
+                    localPath.unshift(prop) // put it back to call in .map
+                    return data.map(getPointerFn(localPath))
+                } else {
+                    data = data?.[prop]
+                }
             }
             return data
         } else if (key) {
@@ -604,6 +680,9 @@ const pointerHandler = (path) => {
     return {
         get(target, property)
         {
+            if (property=='constructor' || typeof property == 'symbol') {
+                return target[property]
+            }
             // creates a new path, which is passed to pointerFn en pointerHandler
             // so it is kept in a new stack frame
             let newpath = path.concat([property])
