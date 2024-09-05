@@ -5,6 +5,7 @@
 - [Basic Queries with .select()](#basic-queries)
 - [Filtering with .where()](#filter-where)
 - [Sorting with .orderBy()](#sort-orderBy)
+- [Calculating with .reduce()](#reduce)
 - [Grouping with .groupBy()](#group-groupBy)
 - [Nesting select()](#nesting-select)
 - Troubleshooting and Performance
@@ -237,7 +238,7 @@ Which will result in:
 ]
 ```
 
-Notice that there is no `firstName` property in the data. But because we replaced the `_` with `_.name`, JAQT knows which property you want. This works only for properties on the current object. You can't use `_.metrics.hair_color`. For that see how you can add your own [accessor functions](#accessor-functions) later in the manual.
+Notice that there is no `firstName` property in the data. But because we replaced the `_` with `_.name`, JAQT knows which property you want. 
 
 ### Re-usable Fragments
 
@@ -745,22 +746,50 @@ result = from(data.people)
 .sort((a,b) => parseInt(a.height)>parseInt(b.height) ? 1 : parseInt(a.height)<parseInt(b.height) ? -1 : 0)
 ```
 
+
+<a name="reduce"></a>
+## Calculating with .reduce()
+
+JAQT adds a new capability to the default .reduce() function: You can add more than one reducer, just like with .select(). For example:
+
+```javascript
+from(data.people)
+.reduce({
+	avgHeight: avg(_.height),
+	count: count()
+})
+```
+Which results in:
+```
+{
+	avgHeight: 155,
+	count: 4
+}
+```
+
+But you can still use the normal `reduce`, e.g:
+
+```javascript
+from(data.people)
+.reduce((accu,ob) => accu+1, 0)
+```
+
+Which results in:
+```
+4
+```
+
 <a name="group-groupBy"></a>
 ## Grouping with .groupBy()
-
-Note: This feature is still experimental, the workings could change quite a bit in the future.
 
 ### Grouping by Property Value
 
 Instead of sorting by gender, it is more common to group results by gender, so lets do that here:
 ```javascript
 result = from(data.people)
+.groupBy( _.gender )
 .select({
-	name: _,
-	gender: _
-})
-.groupBy({
-	gender: _
+	name: _
 })
 ```
 
@@ -768,35 +797,63 @@ And the result is:
 ```
 {
     "male": [
-	    { name: 'Darth', gender: 'male' },
-	    { name: 'Luke', gender: 'male' }
+	    { name: 'Darth' },
+	    { name: 'Luke' }
 	],
 	"female": [
-    	{ name: 'Leia', gender: 'female' }
+    	{ name: 'Leia' }
     ],
     "n/a": [
-	    { name: 'R2-D2', gender: 'n/a' }
+	    { name: 'R2-D2' }
 	]
 }
 ```
 
 Note that the result is now an object and no longer an array. 
 
+You can group by more than one property:
+```javascript
+result = from(data.people)
+.groupBy( _.gender, _.metrics.hair_color )
+.select({
+	name: _
+})
+```
+
+And the result is:
+```
+{
+    "male": [
+    	"none": [
+		    { name: 'Darth' }
+		],
+		"blond": [
+		    { name: 'Luke' }
+		]
+	],
+	"female": [
+		"brown": [
+	    	{ name: 'Leia' }
+	    ]
+    ],
+    "n/a": [
+    	"n/a": [
+		    { name: 'R2-D2' }
+		]
+	]
+}
+```
+
 The value for each group doesn't have to be an array, a number of helper functions allow you to calculate a value for each group:
 
 ### count
 
-This counts the grouped values:
+The `count` function is meant to be used with `reduce`, and it counts the grouped values:
 
 ```javascript
 result = from(data.people)
-.select({
-	name: _,
-	gender: _
-})
-.groupBy({
-	gender: count()
-})
+.groupBy(_.gender)
+.reduce(count())
 ```
 
 And the result is:
@@ -804,63 +861,72 @@ And the result is:
 { male: 2, female: 1, 'n/a': 1 }
 ```
 
-Note that you must call the `count()` function in the `groupBy` statement, unlike the functions used in `select`,`where` or `orderBy`. This is because the other `groupBy` functions need one or more parameters. To be consistent all of them work the same, so it is `count()` and not `count`.
-
 ### sum
 
 If the grouped values contain a numeric property, you can use it to calculate the sum of the grouped values:
 
 ```javascript
 result = from(data.people)
-.groupBy({
-	gender: sum(_.height)
-})
+.groupBy(_.gender)
+.reduce(sum(_.height))
 ```
 
 Results in:
 ```
-{ male: 374, female: 150, 'n/a': 0 }
+{ male: 374, female: 150, 'n/a': 90 }
 ```
-
-
 ### avg
+
+This calculates the average of all matched values:
+
 ```javascript
 result = from(data.people)
-.groupBy({
-	gender: avg(_.height),
-	hair_color: _
-})
-```
-```javascript
-.groupBy('gender', 'hair_color').select({gender: _, average_height: avg(_.height)})
-```
-```javascript
-.groupBy(_.gender, _.hair_color).select({gender: _, average_height: avg(_.height)})
-```
-want: .groupBy(o => o.metric.height) werkt dan
-
-```javascript
-.groupBy(_.gender, o => o.metrics.hair_color).select(avg(_.height))
+.groupBy(_.gender)
+.reduce(avg(_.height))
 ```
 
-result:
+It will assume a value of `0` for any value which can't be parsed as a number.
+Note: the result is a Number object. To convert it to a plain number, use:
+
 ```
-{
-	"male":{
-		"blond": 180
-	},
-	"female": {
-		"blond": 175
-	}
+result = +result
+```
+
+One case where this is needed, is if you check the result with:
+```
+if (!result) {
+
 }
 ```
-probleem: avg() werkt anders dan in de normale select. Moet dit ook werken:
-```javascript
-from(data.people).select(avg(_.height))
+
+This will fail if result is a Number, even if it is the Number(0). Objects will never be falsy. Instead check explicitly for 0, like this:
+
 ```
-lijkt me dan wel logisch...
+if (result==0) {
+
+}
+```
+
+
 
 ### min and max
+
+These will return the minimum and maximum values of the data respectively:
+```javascript
+result = from(data.people)
+.reduce({
+	min: min(_.height),
+	max: max(_.height)
+})
+```
+
+Which returns:
+```
+{
+	min: 96,
+	max: 202
+}
+```
 
 <a name="nesting-select"></a>
 ## Nesting select()
