@@ -1,19 +1,71 @@
+[![GitHub License](https://img.shields.io/github/license/muze-nl/jaqt)](https://github.com/muze-nl/jaqt/blob/main/LICENSE)
+[![GitHub package.json version](https://img.shields.io/github/package-json/v/muze-nl/jaqt)]()
+[![NPM Version](https://img.shields.io/npm/v/jaqt)](https://www.npmjs.com/package/jaqt)
+[![npm bundle size](https://img.shields.io/bundlephobia/min/jaqt)](https://www.npmjs.com/package/jaqt)
+
 # jaqt: javascript queries and transformations
 
 jaqt (pronounced 'jacket') is a query engine for arrays and objects, inspired by graphql and sql. e.g:
 
+<table>
+<tr>
+<th>
+Javascript Query
+</th>
+<th>
+Result
+</th>
+</tr>
+<tr>
+<td width=50%">
+
 ```javascript
-from(dataset).where({name: 'John'}).select({lastName:_})
+from(dataset)
+.where({
+    name: 'John'
+})
+.select({
+    metrics: {
+        hair_color: _
+    },
+    lastName:_
+})
+
 ```
+<br><br><br>
+</td>
+<td width=50%">
+	
+```
+[
+    {
+        "metrics": {
+            "hair_color": "blond"
+        },
+        "lastName": "Skywalker"
+    },
+    {
+        "metrics": {
+            "hair_color": "none"
+        },
+        "lastName": "Vader"
+    }
+]
+```
+
+</td>
+</tr>
+</table>
 
 ## Table of Contents
 
 1. [Background](#background)
 2. [Quickstart](docs/quickstart.md)
 3. [Usage](#usage)
-4. [Reference](docs/reference.md)
-5. [Contributions](#contributions)
-6. [License](#license)
+4. [User Manual](docs/manual.md)
+5. [Reference](docs/reference.md)
+6. [Contributions](#contributions)
+7. [License](#license)
 
 <a name="background"></a>
 ## Background
@@ -64,13 +116,19 @@ from(data)
 })
 ```
 
+## Documentation
+
+- The [Developers Manual](docs/manual.md) will guide you on how to get started and how to use JAQT.
+- The [Reference](docs/reference.md) explains all the parts in detail.
+
+
 <a name="contributions"></a>
 ## Contributions
 
 Contributions are welcome. Please fork the github repository and make your changes there, then open a pull request.
 If you find any bugs or other issues, please use the github repository Issues. Check if your issue has already been posted before you add a new issue.
 
-The github repository is at https://github.com/muze-nl/array-where-select
+The github repository is at https://github.com/muze-nl/jaqt
 
 <a name="license"></a>
 ## License
