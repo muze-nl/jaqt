@@ -373,12 +373,12 @@ You can filter an array of objects by matching one or more specific properties e
 ```javascript
 result = from(data.people)
 .where({
-	metrics: {
-		hair_color: "blond"
-	}
+    metrics: {
+        hair_color: "blond"
+    }
 })
 .select({
-	name: _
+    name: _
 })
 ```
 
@@ -398,12 +398,12 @@ You can filter the data by regular expression as well. Any data that matches the
 ```javascript
 result = from(data.people)
 .where({
-	metrics: {
-		skin_color: /white/
-	}
+    metrics: {
+        skin_color: /white/
+    }
 })
 .select({
-	name: _
+    name: _
 })
 ```
 
@@ -422,14 +422,14 @@ Since both 'white' and 'white, blue' match with the regular expression `/white/`
 `where` will match a property with an array of values, if any value matches the filter value. So if your data is:
 ```
 const data = [
-	{
-		name: 'Luke',
-		favorite_color: 'Red'
-	},
-	{
-		name: 'Leia',
-		favorite_color: ['Blue','Purple']
-	}
+    {
+        name: 'Luke',
+        favorite_color: 'Red'
+    },
+    {
+        name: 'Leia',
+        favorite_color: ['Blue','Purple']
+    }
 ]
 ```
 
@@ -437,17 +437,17 @@ You can match people with 'Blue' among their favorite colors like this:
 ```javascript
 result = from(data)
 .where({
-	favorite_color: 'Blue'
+    favorite_color: 'Blue'
 })
 .select({
-	name: _
+    name: _
 })
 ```
 
 And the result will be:
 ```
 [
-	{ name: 'Leia' }
+    { name: 'Leia' }
 ]
 ```
 
@@ -458,10 +458,10 @@ By default `where` will only let objects through that match all of the given pro
 ```javascript
 result = from(data.people)
 .where({
-	name: anyOf('Luke','Darth')
+    name: anyOf('Luke','Darth')
 })
 .select({
-	name: _
+    name: _
 })
 ```
 
@@ -469,10 +469,10 @@ You can get the same effect by passing an array, like this:
 ```javascript
 result = from(data.people)
 .where({
-	name: ['Luke','Darth']
+    name: ['Luke','Darth']
 })
 .select({
-	name: _
+    name: _
 })
 ```
 
@@ -492,66 +492,66 @@ The javascript spread operator allows you to combine objects. This means that yo
 
 ```javascript
 const male = {
-	gender: "male"
+    gender: "male"
 }
 const blond = {
-	metrics: {
-		hair_color: /blond/
-	}
+    metrics: {
+        hair_color: /blond/
+    }
 }
 result = from(data.people)
 .where({
-	...male,
-	...blond
+    ...male,
+    ...blond
 })
 .select({
-	name: _
+    name: _
 })
 ```
 
 However, you can't use this to match objects which have two where clauses on the same property. E.g:
 ```javascript
 const whiteSkin = {
-	metrics: {
-		skin_color: /white/
-	}
+    metrics: {
+        skin_color: /white/
+    }
 }
 const blueSkin = {
-	metrics: {
-		skin_color: /blue/
-	}
+    metrics: {
+        skin_color: /blue/
+    }
 }
 result = from(data.people)
 .where({
-	...blueSkin,
-	...whiteSkin
+    ...blueSkin,
+    ...whiteSkin
 })
 .select({
-	name: _
+    name: _
 })
 ```
 
 The `whiteSkin` value overwrites the `blueSkin` value. A simple solution is to call `where` twice:
 ```javascript
 const whiteSkin = {
-	metrics: {
-		skin_color: /white/
-	}
+    metrics: {
+        skin_color: /white/
+    }
 }
 const blueSkin = {
-	metrics: {
-		skin_color: /blue/
-	}
+    metrics: {
+        skin_color: /blue/
+    }
 }
 result = from(data.people)
 .where({
-	...blueSkin
+    ...blueSkin
 })
 .where({
-	...whiteSkin
+    ...whiteSkin
 })
 .select({
-	name: _
+    name: _
 })
 ```
 
@@ -559,21 +559,21 @@ And that will work, but is not always possible and can be slower than filtering 
 
 ```javascript
 const whiteSkin = {
-	metrics: {
-		skin_color: /white/
-	}
+    metrics: {
+        skin_color: /white/
+    }
 }
 const blueSkin = {
-	metrics: {
-		skin_color: /blue/
-	}
+    metrics: {
+        skin_color: /blue/
+    }
 }
 result = from(data.people)
 .where({
-	allOf(blueSkin,whiteSkin)
+    allOf(blueSkin,whiteSkin)
 })
 .select({
-	name: _
+    name: _
 })
 ```
 
@@ -582,12 +582,12 @@ A special case is when you want to match on a number of values in an array of va
 ```javascript
 result = from(data.people)
 .where({
-	metrics: {
-		skin_color: allOf('blue','white')
-	}
+    metrics: {
+        skin_color: allOf('blue','white')
+    }
 })
 .select({
-	name: _
+    name: _
 })
 ```
 
@@ -599,7 +599,7 @@ Finally, the `not` function returns the inverse of whatever match you pass. E.g:
 ```javascript
 result = from(data.people)
 .where({
-	name: not('Luke')
+    name: not('Luke')
 })
 ```
 
@@ -607,7 +607,7 @@ You can pass multiple arguments to not, and it will be interpreted as `not(anyOf
 ```javascript
 result = from(data.people)
 .where({
-	name: not('Luke','Darth')
+    name: not('Luke','Darth')
 })
 ```
 
@@ -620,18 +620,18 @@ Just as the `select` function, `where` allows you to pass a custom match functio
 ```javascript
 result = from(data.people)
 .where({
-	name: o => o.name[0]=='L'
+    name: o => o.name[0]=='L'
 })
 .select({
-	name: _
+    name: _
 })
 ```
 
 Which results in:
 ```
 [
-	{name: 'Luke'},
-	{name: 'Leia'}
+    {name: 'Luke'},
+    {name: 'Leia'}
 ]
 ```
 
@@ -647,10 +647,10 @@ JAQT adds the `orderBy` method, to sort results. It works just like `select` and
 ```javascript
 result = from(data.people)
 .select({
-	name: _
+    name: _
 })
 .orderBy({
-	name: asc
+    name: asc
 })
 ```
 
@@ -668,10 +668,10 @@ You can reverse this, like so:
 ```javascript
 result = from(data.people)
 .select({
-	name: _
+    name: _
 })
 .orderBy({
-	name: desc
+    name: desc
 })
 ```
 
@@ -690,12 +690,12 @@ You can also order by values that are not in your select statement. Do this by f
 ```javascript
 result = from(data.people)
 .orderBy({
-	metrics: {
-		height: asc
-	}
+    metrics: {
+        height: asc
+    }
 })
 .select({
-	name: _
+    name: _
 })
 ```
 
@@ -705,12 +705,12 @@ You can order by more than one property. Suppose we want to sort on gender and t
 ```javascript
 result = from(data.people)
 .orderBy({
-	gender: asc,
-	name: asc
+    gender: asc,
+    name: asc
 })
 .select({
-	name: _,
-	gender: _
+    name: _,
+    gender: _
 })
 ```
 
@@ -733,7 +733,7 @@ Just like `select` and `where`, `orderBy` can use custom functions, e.g:
 ```javascript
 result = from(data.people)
 .orderBy({
-	height: (a,b) => parseInt(a)>parseInt(b) ? 1 : parseInt(a)<parseInt(b) ? -1 : 0
+    height: (a,b) => parseInt(a)>parseInt(b) ? 1 : parseInt(a)<parseInt(b) ? -1 : 0
 })
 ```
 
@@ -755,15 +755,15 @@ JAQT adds a new capability to the default .reduce() function: You can add more t
 ```javascript
 from(data.people)
 .reduce({
-	avgHeight: avg(_.height),
-	count: count()
+    avgHeight: avg(_.height),
+    count: count()
 })
 ```
 Which results in:
 ```
 {
-	avgHeight: 155,
-	count: 4
+    avgHeight: 155,
+    count: 4
 }
 ```
 
@@ -789,7 +789,7 @@ Instead of sorting by gender, it is more common to group results by gender, so l
 result = from(data.people)
 .groupBy( _.gender )
 .select({
-	name: _
+    name: _
 })
 ```
 
@@ -797,15 +797,15 @@ And the result is:
 ```
 {
     "male": [
-	    { name: 'Darth' },
-	    { name: 'Luke' }
-	],
-	"female": [
-    	{ name: 'Leia' }
+        { name: 'Darth' },
+        { name: 'Luke' }
+    ],
+    "female": [
+        { name: 'Leia' }
     ],
     "n/a": [
-	    { name: 'R2-D2' }
-	]
+        { name: 'R2-D2' }
+    ]
 }
 ```
 
@@ -816,7 +816,7 @@ You can group by more than one property:
 result = from(data.people)
 .groupBy( _.gender, _.metrics.hair_color )
 .select({
-	name: _
+    name: _
 })
 ```
 
@@ -824,23 +824,23 @@ And the result is:
 ```
 {
     "male": [
-    	"none": [
-		    { name: 'Darth' }
-		],
-		"blond": [
-		    { name: 'Luke' }
-		]
-	],
-	"female": [
-		"brown": [
-	    	{ name: 'Leia' }
-	    ]
+        "none": [
+            { name: 'Darth' }
+        ],
+        "blond": [
+            { name: 'Luke' }
+        ]
+    ],
+    "female": [
+        "brown": [
+            { name: 'Leia' }
+        ]
     ],
     "n/a": [
-    	"n/a": [
-		    { name: 'R2-D2' }
-		]
-	]
+        "n/a": [
+            { name: 'R2-D2' }
+        ]
+    ]
 }
 ```
 
@@ -915,16 +915,16 @@ These will return the minimum and maximum values of the data respectively:
 ```javascript
 result = from(data.people)
 .reduce({
-	min: min(_.height),
-	max: max(_.height)
+    min: min(_.height),
+    max: max(_.height)
 })
 ```
 
 Which returns:
 ```
 {
-	min: 96,
-	max: 202
+    min: 96,
+    max: 202
 }
 ```
 
