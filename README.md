@@ -7,6 +7,18 @@
 
 jaqt (pronounced 'jacket') is a query engine for arrays and objects, inspired by graphql and sql. e.g:
 
+<table>
+<tr>
+<th>
+Javascript Query
+</th>
+<th>
+Result
+</th>
+</tr>
+<tr>
+<td width=50%">
+
 ```javascript
 from(dataset)
 .where({
@@ -18,8 +30,32 @@ from(dataset)
     },
     lastName:_
 })
+
+```
+<br><br><br>
+</td>
+<td width=50%">
+	
+```
+[
+    {
+        "metrics": {
+            "hair_color": "blond"
+        },
+        "lastName": "Skywalker"
+    },
+    {
+        "metrics": {
+            "hair_color": "none"
+        },
+        "lastName": "Vader"
+    }
+]
 ```
 
+</td>
+</tr>
+</table>
 ## Table of Contents
 
 1. [Background](#background)
