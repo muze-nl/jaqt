@@ -317,7 +317,6 @@ function groupBy(data, pointerFunctions) {
  */
 export function sum(fetchFn) {
     return (a,o) => {
-        console.log('sum',a,o)
         if (Array.isArray(a)) {            
             a = 0
         }
