@@ -8,7 +8,7 @@
 - [Calculating with .reduce()](#reduce)
 - [Grouping with .groupBy()](#group-groupBy)
 - [Nesting select()](#nesting-select)
-- Troubleshooting and Performance
+- [Performance](#performance)
 
 <a name="introduction"></a>
 ## Introduction
@@ -365,6 +365,10 @@ Similarly you can use the functions `sort`, `filter`, `map`, `reduce`, `indexOf`
 
 <a name="filter-where"></a>
 ## Filtering with .where()
+
+`where` makes it easy to filter entries in a `from()` array by property value. This function will apply your filter criteria to each object in the array in turn. Only objects that match all criteria will be retained. Other objects are filtered out of the list.
+
+Note: `where` doesn't use indexes, it will just loop over the full list of objects.
 
 ### Exact match
 
@@ -949,3 +953,101 @@ Note, you shouldn't use the `_` as a function parameter, or you will overwrite i
 
 ### Using from().select() as value
 
+You can create a sub-select, queries within a query, like this:
+
+```javascript
+from(data.people)
+.select({
+	name: _,
+	friends: o => from(o.friends)
+		where({
+			name: not(o.name)
+		})
+		.select({
+			name: _
+		})
+})
+```
+
+Here for each person in `data.people`, their name and a list of friends names is returned, where the friends name is not the same as the persons name.
+
+Note however, that doing this can become slow rather quickly. Each `where` and `select` loop over a full list of objects. The inner `from().where().select()` loops over the full list of friends, for each person in the list.
+
+<a name="performance"></a>
+## Performance
+
+In general `where` will perform just as fast as `Array.filter` would, and `select` just as fast as `Array.map` would. However, `where` and `select` have one advantage: it is easy to select or filter on multiple property values in one loop. This means that memory access and therefor cache invalidation is limited. Simple `Array.filter` and `Array.map` code often include multiple calls to each. Using JAQT you can easily do the same in a single pass over the data.
+
+Since `where` is just a wrapper around `Array.filter`, you shouldn't do something like this:
+```javascript
+from(data.people)
+.where({
+	id: 18992
+})
+.select({
+	name: _
+})
+```
+
+This will loop over the entire list of people, which could be quite large, just to retrieve a single person by their `id`. It is much more efficient to create a separate index, and use that:
+
+```javascript
+const index = new Map()
+for(let person of data.people) {
+	index.set(person.id, person)
+}
+
+from(index.get(18992))
+.select({
+	name: _
+})
+```
+
+Assuming you can re-use the index, so you only have to build it once.
+
+### Joins
+
+If you use JSON as your storage format, you will find that you can't store data that has cyclical references. Its worse, you can't reference any object that is already linked somewhere. The only option is to use some kind of id as a reference. This means that you will have to link up the data after reading the JSON. You can probably do this when running queries, but again, this is slow.
+
+Instead of mimicking SQL joins, why not take advantage of the inherent graph nature of javascript objects? You can just link objects directly. All you need is some way to save and parse these links, e.g:
+
+```javascript
+const seen = new Map()
+function replacer(key, value) {
+	if (value && typeof value == 'object') {
+		if (seen.has(value)) {
+			let id = seen.get(value)
+			return {
+				'@type': 'link',
+				'@ref': id
+			}
+		}
+		let id = Crypto.randomUUID()
+		value['@id'] = id
+		seen.set(value, id)
+	}
+	return value
+}
+let jsonString = JSON.stringify(data, replacer)
+```
+
+This will replace all objects second or later occurance with a new object with a unique id. The original object is extended with a `@id` property.
+
+Similarly, `JSON.parse` has a `reviver` function parameter, which you can use to change these link type objects with the original object reference.
+
+```javascript
+const seen = new Map()
+function reviver(key, value) {
+	if (value && typeof value == 'object') {
+		if (value['@id']) {
+			seen.set(value['@id'], value)
+		} else if (value['@type']=='link') {
+			value = seen.get(value['@ref'])
+		}
+	}
+	return value
+}
+let data = JSON.parse(jsonString, reviver)
+```
+
+Or you can choose to use [JSONTag](https://github.com/muze-nl/jsontag) instead of JSON to parse and stringify data, which not only does this out of the box, but also adds optional metadata information to JSON.

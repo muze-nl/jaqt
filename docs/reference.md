@@ -11,6 +11,7 @@
 	- [first()](#first)
 - [orderBy()](#orderBy)
 - [groupBy()](#groupBy)
+- [reduce()](#reduce)
 	- [count()](#count)
 	- [sum()](#sum)
 	- [avg()](#avg)
@@ -108,7 +109,7 @@ from(data)
 })
 ```
 
-You can also use the spread operator to include different fragments, like this:
+Finally use the spread operator to include different fragments, like this:
 
 ```javascript
 const names = {
@@ -257,20 +258,6 @@ from(data)
 })
 ```
 
-<a name="groupBy"></a>
-### groupBy()
-
-Note: _This function is very experimental and likely to change._
-
-Just like SQL, groupBy groups results with the same value for the groupBy field. Here is an example:
-
-```javascript
-from(data)
-.groupBy({
-	lastName: _
-})
-```
-
 <a name="where"></a>
 ### where()
 
@@ -377,8 +364,129 @@ from(data)
 })
 ```
 
+<a name="groupBy"></a>
+### groupBy()
+
+Just like SQL, groupBy groups results with the same value for the groupBy field. Here is an example:
+
+```javascript
+from(data)
+.groupBy(_.lastName)
+.select({
+	name: _
+})
+```
+
+Which results in:
+
+```
+{
+	"Doe": [
+		{
+			"Jane"
+		},
+		{
+			"John"
+		}
+	]
+}
+```
+
+<a name="reduce"></a>
+## Reduce
+
+The reduce() function is similar to the normal Array.reduce function. It can be run directly like this:
+
+```javascript
+from(data.people)
+.reduce(avg(_.height))
+```
+
+Or on the result of select (and where), like this:
+```javascript
+from(data.people)
+.select({
+	height: _
+})
+.reduce(avg(_.height))
+```
+
+or on the result of groupBy:
+```javascript
+from(data.people)
+.groupBy(_.gender)
+.reduce(avg(_.height))
+```
+
+<a name="count"></a>
+### count
+
+Counts the number of entries in a list:
+
+```javascript
+from(data.people)
+.groupBy(_.gender)
+.reduce(count())
+```
+
+Count has no arguments.
+
+<a name="sum"></a>
+### sum
+
+Sums up the given value of all entries. If the value isn't defined or not a number, it is counted as 0.
+
+```javascript
+from(data.cars)
+.groupBy(_.category)
+.reduce(sum(_.price))
+```
+
+<a name="avg"></a>
+### avg
+
+Averages the given value of all entries. If the value isn't defined or not a number, it is counted as 0.
+
+```javascript
+from(data.cars)
+.groupBy(_.category)
+.reduce(avg(_.price))
+```
+
+<a name="min"></a>
+### min
+
+Returns the minimum value of all entries.
+
+```javascript
+from(data.cars)
+.groupBy(_.category)
+.reduce(min(_.price))
+```
+
+<a name="max"></a>
+### max
+
+Returns the maximum value of all entries.
+
+```javascript
+from(data.cars)
+.groupBy(_.category)
+.reduce(max(_.price))
+```
+
+<a name="custom-reduce"></a>
+### Custom reduce functions
+
+Just like the normal Array.reduce function, you can pass your own custom reducer:
+
+```javascript
+from(data.people)
+.reduce((acc, entry) => acc + entry.age, 0)
+```
+
 <a name="nested"></a>
-### Nested Queries
+## Nested Queries
 
 You can use functions in a select() statement, like this:
 ```javascript
