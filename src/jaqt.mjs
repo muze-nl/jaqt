@@ -223,32 +223,42 @@ export function getAggregateFn(filter) {
         fns.push(filter)
     } else for (const [filterKey, filterValue] of Object.entries(filter)) {
         if (isPlainObject(filterValue)) {
-            fns.push( (data) => { 
-                return {
-                    [filterKey]: from(data[filterKey]).select(filterValue)
+            fns.push( (a, o) => { 
+                if (!isPlainObject(a)) {
+                    a = {}
                 }
+                a[filterKey] = from(o[filterKey]).reduce(filterValue, [])
+                return a
             })
         } else if (filterValue instanceof Function) {
-            fns.push( (data) => {
-                return {
-                    [filterKey]: filterValue(data, filterKey, 'reduce')
+            fns.push( (a, o) => {
+                if (!isPlainObject(a)) {
+                    a = {}
                 }
+                if (o.reduce) {
+                    a[filterKey] = o.reduce(filterValue, a[filterKey] || [])
+                } else {
+                    a[filterKey] = filterValue(a[filterKey] || [], o)
+                }
+                return a
             })
         } else {
-            fns.push( (data) => {
-                return {
-                    [filterKey]: filterValue 
+            fns.push( (a, o) => {
+                if (!isPlainObject(a)) {
+                    a = {}
                 }
+                a[filterKey] = filterValue 
+                return a
             })
         }
     }
     if (fns.length==1) {
         return fns[0]
     }
-    return (o, a) => {
+    return (a, o) => {
         let result = {}
         for (let fn of fns) {
-            Object.assign(result, fn(o,a))
+            Object.assign(result, fn(a,o))
         }
         return result
     }
@@ -307,7 +317,8 @@ function groupBy(data, pointerFunctions) {
  */
 export function sum(fetchFn) {
     return (a,o) => {
-        if (Array.isArray(a)) {
+        console.log('sum',a,o)
+        if (Array.isArray(a)) {            
             a = 0
         }
         a += parseFloat(fetchFn(o)) || 0
@@ -484,16 +495,19 @@ const DataProxyHandler = {
                     return function(filter) {
                         let selectFn = getSelectFn(filter)
                         return new Proxy(target
-                            .map(element => selectFn(element))
+                            .map(selectFn)
                             , DataProxyHandler)
                     }
                 break
                 case 'reduce':
                     return function(pattern) {
                         let aggregateFn = getAggregateFn(pattern)
-                        return new Proxy(target
-                            .reduce(element => aggregateFn(element))
-                            , DataProxyHandler)
+                        let temp = target.reduce(aggregateFn, [])
+                        if (typeof temp == 'object') {
+                            return new Proxy(temp, DataProxyHandler)
+                        } else {
+                            return temp
+                        }
                     }
                 break
                 case 'orderBy':
