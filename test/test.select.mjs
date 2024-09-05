@@ -1,4 +1,4 @@
-import { _, from, asc, desc, many, one, first } from '../src/jaqt.mjs'
+import { _, from, asc, desc, many, one, first, avg, count } from '../src/jaqt.mjs'
 import tap from 'tap'
 
 const data = [
@@ -44,7 +44,7 @@ const data2 = JSON.parse(`
 			"name": "Darth",
 			"lastName": "Vader",
 			"metrics":{
-				"height":"20200",
+				"height":"202",
 				"hair_color":"none",
 				"skin_color":"white",
 				"eye_color":"yellow"
@@ -398,5 +398,30 @@ tap.test('select-first', t => {
 	t.same(result[1].name, 'Doe')
 	t.same(result[2].name, 'Unknown')
 	t.same(result[3].name, 'Unknown')
+	t.end()
+})
+
+tap.test('select-reduce', t => {
+	let result = from(data2.people)
+	.reduce(avg(_.metrics.height))
+	t.same(187,+result)
+	t.end()
+})
+
+tap.test('select-reduce-plain', t => {
+	let result = from(data2.people)
+	.reduce((a,o) => a+1, 0)
+	t.same(result,2)
+	t.end()
+})
+
+tap.test('select-reduce-object', t => {
+	let result = from(data2.people)
+	.reduce({
+		h: avg(_.metrics.height),
+		c:count()
+	})
+	t.same(187,+result.h)
+	t.same(2, +result.c)
 	t.end()
 })
