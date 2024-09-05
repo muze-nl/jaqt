@@ -499,11 +499,13 @@ const DataProxyHandler = {
                     }
                 break
                 case 'reduce':
-                    return function(pattern) {
+                    return function(pattern, initial=[]) {
                         let aggregateFn = getAggregateFn(pattern)
-                        let temp = target.reduce(aggregateFn, [])
-                        if (typeof temp == 'object') {
+                        let temp = target.reduce(aggregateFn, initial)
+                        if (Array.isArray(temp)) {
                             return new Proxy(temp, DataProxyHandler)
+                        } else if (isPlainObject(temp)) {
+                            return new Proxy(temp, GroupByProxyHandler)
                         } else {
                             return temp
                         }
@@ -560,12 +562,12 @@ const GroupByProxyHandler = {
                 }
             break
             case 'reduce':
-                return function(pattern) {
+                return function(pattern, initial=[]) {
                     let aggregateFn = getAggregateFn(pattern)
                     let result = {}
                     for (let group in target) {
                         if (Array.isArray(target[group])) {
-                            let temp = target[group].reduce(aggregateFn, [])
+                            let temp = target[group].reduce(aggregateFn, initial)
                             if (Array.isArray(temp)) {
                                 result[group] = new Proxy(temp, DataProxyHandler)
                             } else if (isPlainObject(temp)) {
@@ -605,6 +607,7 @@ const EmptyHandler = {
                     return new Proxy([], EmptyHandler)
                 }
             break
+            case 'reduce':
             case 'select':
                 return function() {
                     return null
