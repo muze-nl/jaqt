@@ -1,10 +1,22 @@
-[![MIT License][license-shield]][license-url]
+[![GitHub License](https://img.shields.io/github/license/muze-nl/jaqt)](https://github.com/muze-nl/jaqt/blob/main/LICENSE)
+[![GitHub package.json version](https://img.shields.io/github/package-json/v/muze-nl/jaqt)]()
+[![NPM Version](https://img.shields.io/npm/v/jaqt)](https://www.npmjs.com/package/jaqt)
+
 # jaqt: javascript queries and transformations
 
 jaqt (pronounced 'jacket') is a query engine for arrays and objects, inspired by graphql and sql. e.g:
 
 ```javascript
-from(dataset).where({name: 'John'}).select({lastName:_})
+from(dataset)
+.where({
+    name: 'John'
+})
+.select({
+    metrics: {
+        hair_color: _
+    },
+    lastName:_
+})
 ```
 
 ## Table of Contents
@@ -12,9 +24,10 @@ from(dataset).where({name: 'John'}).select({lastName:_})
 1. [Background](#background)
 2. [Quickstart](docs/quickstart.md)
 3. [Usage](#usage)
-4. [Reference](docs/reference.md)
-5. [Contributions](#contributions)
-6. [License](#license)
+4. [User Manual](docs/manual.md)
+5. [Reference](docs/reference.md)
+6. [Contributions](#contributions)
+7. [License](#license)
 
 <a name="background"></a>
 ## Background
@@ -65,6 +78,12 @@ from(data)
 })
 ```
 
+## Documentation
+
+- The [Developers Manual](docs/manual.md) will guide you on how to get started and how to use JAQT.
+- The [Reference](docs/reference.md) explains all the parts in detail.
+
+
 <a name="contributions"></a>
 ## Contributions
 
@@ -79,6 +98,3 @@ The github repository is at https://github.com/muze-nl/array-where-select
 ## License
 
 This software is licensed under MIT open source license. See the [License](./LICENSE) file.
-
-[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
-[license-url]: https://github.com/muze-nl/jaqt/blob/main/LICENSE
