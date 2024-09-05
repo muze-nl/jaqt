@@ -1,3 +1,4 @@
+[![MIT License][license-shield]][license-url]
 # jaqt: javascript queries and transformations
 
 jaqt (pronounced 'jacket') is a query engine for arrays and objects, inspired by graphql and sql. e.g:
@@ -70,9 +71,14 @@ from(data)
 Contributions are welcome. Please fork the github repository and make your changes there, then open a pull request.
 If you find any bugs or other issues, please use the github repository Issues. Check if your issue has already been posted before you add a new issue.
 
+
+
 The github repository is at https://github.com/muze-nl/array-where-select
 
 <a name="license"></a>
 ## License
 
 This software is licensed under MIT open source license. See the [License](./LICENSE) file.
+
+[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
+[license-url]: https://github.com/muze-nl/jaqt/blob/main/LICENSE
