@@ -90,9 +90,7 @@ from(data)
 Contributions are welcome. Please fork the github repository and make your changes there, then open a pull request.
 If you find any bugs or other issues, please use the github repository Issues. Check if your issue has already been posted before you add a new issue.
 
-
-
-The github repository is at https://github.com/muze-nl/array-where-select
+The github repository is at https://github.com/muze-nl/jaqt
 
 <a name="license"></a>
 ## License
