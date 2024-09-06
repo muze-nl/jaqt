@@ -148,10 +148,25 @@ Read more about the [Node REPL server here](https://nodejs.org/en/learn/command-
 
 
 ### from()
-All JAQT queries start with the `from` method. It has a single argument, which must be an array of objects, or a single object. The from method creates a new Proxy object, which adds the methods `select`,`where`,`orderBy` and `groupBy`.
+All JAQT queries start with the `from` function:
+
+```javascript
+let result = from(data.people)
+``` 
+
+It has a single argument, which should be an array of objects. The result is still an array, but you can now also call the methods `select`,`where`,`orderBy` and `groupBy` on that result.
 
 ```javascript
 result = from(data.people).select({name: _})
+```
+
+`select` here tells JAQT which properties of each object in the `data.people` array you are interested in. It will loop over all objects and only retrieve the `name` property. Result is now something like:
+
+```
+[
+    {name: "Luke"},
+    {name: "Darth"}
+]
 ```
 
 ### What is `_`?
@@ -181,6 +196,18 @@ And will result in:
     { name: 'R2-D2', origin: 'StarWars' }
 ]
 ```
+
+However, you should be aware that if you want to use javascript functions to change the right hand side of a key : value pair, you cannot just add any javascript. For example, this will not work:
+
+```javascript
+result = from(data.people)
+.select({
+    name: 'Foo' + _ // This is incorrect
+})
+```
+
+The object you pass to `select` is a pattern that will be applied to each object in `data.people`. So it must be able to run with different objects as source. In javascript this means that it must be a function. Each javascript operation you add, must therefor be wrapped in a function as well. If you want to prepend `'Foo'` to a each value, you can [create your own function](#accessor-functions) to do that,
+
 
 ### Selecting nested object data
 
@@ -312,6 +339,8 @@ Which results in:
     { name: 'R2-D2', gender: ['n/a'] }
 ]
 ```
+
+Note: you cannot use `Array.push` or `Array.pop`, or even `_[0]` here. The expressions in the select parameter are functions, not values. The values are created by select, by 'running' your select expression (the pattern object) over each object in the `from()` array.
 
 ### First
 
@@ -936,7 +965,7 @@ Which returns:
 ## Nesting select()
 
 <a name="accessor-functions"></a>
-### Custom Accessor Functions
+### Custom Select Functions
 
 JAQT provides a lot of options with the `select` function. But there are always other use cases. So if the default functions aren't enough, you can provide your own custom accessor functions, e.g:
 
@@ -950,6 +979,62 @@ result = from(data.people)
 The right hand side of `name` is a custom function. It is passed the current object, and you can return whatever you like. In this case the concatenation of the `name` and `lastName` properties.
 
 Note, you shouldn't use the `_` as a function parameter, or you will overwrite its default functionality.
+
+All the utility functions we've discussed here are written exactly like this, even `_`. Here is the definition of `first` for example (shortened for readability):
+
+```javascript
+function one(selectFn) {
+    return (data) => {
+        let result = selectFn(data)
+        if (Array.isArray(result)) {
+            result = result.pop()
+        }
+        return result
+    }
+}
+```
+
+As you can see, `one` doesn't return a value, it returns a function that returns a value. It also expects its parameter to be a function that selects a value.
+
+### Custom Where Functions
+
+Just as with `select`, you can also use custom functions in `where`. These work similar, except they should return `true` or `false`. If they return `true`, the object is passed on, otherwise the object is filtered from the result.
+
+Here is the definition of `not` for example:
+```javascript
+function not(...pattern) 
+{
+    let matchFn = getMatchFn(pattern)
+    return data => !matchFn(data)
+}
+```
+
+`getMatchFn` is a helper function that is also part of JAQT, you can import it just like all the other JAQT functions. 
+
+### Custom Reduce Functions
+
+`reduce` also supports custom functions. These are identical to the normal array reduce functions. So this will work:
+
+```javascript
+from(data.people)
+.reduce((acc,ob) => acc += ob.price, 0)
+```
+
+Here `0` is the initial value of the `acc` accumulator. The function is called on each object in `data.people`. The result of each call is then passed on to the next function call as the `acc` accumulator. The final result is returned.
+
+Here is the definition of `sum` for example:
+```javascript
+export function sum(fetchFn) {
+    return (a,o) => {
+        if (Array.isArray(a)) {            
+            a = 0
+        }
+        return a += parseFloat(fetchFn(o)) || 0
+    }
+}
+```
+
+Again `sum` just returns a function, and expects a single parameter that is also a function. The check if the `a` accumulator is an array, is because if you don't pass a initial value to reduce, it will default to an empty array.
 
 ### Using from().select() as value
 
