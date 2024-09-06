@@ -20,18 +20,15 @@ Result
 <td width=50%">
 
 ```javascript
-from(dataset)
-.where({
-    name: 'John'
-})
+from(data.people)
 .select({
     metrics: {
         hair_color: _
     },
     lastName:_
 })
-
 ```
+<br><br><br>
 <br><br><br>
 </td>
 <td width=50%">
