@@ -812,73 +812,6 @@ Which results in:
 4
 ```
 
-<a name="group-groupBy"></a>
-## Grouping with .groupBy()
-
-### Grouping by Property Value
-
-Instead of sorting by gender, it is more common to group results by gender, so lets do that here:
-```javascript
-result = from(data.people)
-.groupBy( _.gender )
-.select({
-    name: _
-})
-```
-
-And the result is:
-```
-{
-    "male": [
-        { name: 'Darth' },
-        { name: 'Luke' }
-    ],
-    "female": [
-        { name: 'Leia' }
-    ],
-    "n/a": [
-        { name: 'R2-D2' }
-    ]
-}
-```
-
-Note that the result is now an object and no longer an array. 
-
-You can group by more than one property:
-```javascript
-result = from(data.people)
-.groupBy( _.gender, _.metrics.hair_color )
-.select({
-    name: _
-})
-```
-
-And the result is:
-```
-{
-    "male": [
-        "none": [
-            { name: 'Darth' }
-        ],
-        "blond": [
-            { name: 'Luke' }
-        ]
-    ],
-    "female": [
-        "brown": [
-            { name: 'Leia' }
-        ]
-    ],
-    "n/a": [
-        "n/a": [
-            { name: 'R2-D2' }
-        ]
-    ]
-}
-```
-
-The value for each group doesn't have to be an array, a number of helper functions allow you to calculate a value for each group:
-
 ### count
 
 The `count` function is meant to be used with `reduce`, and it counts the grouped values:
@@ -958,6 +891,95 @@ Which returns:
 {
     min: 96,
     max: 202
+}
+```
+
+<a name="group-groupBy"></a>
+## Grouping with .groupBy()
+
+### Grouping by Property Value
+
+Instead of sorting by gender, it is more common to group results by gender, so lets do that here:
+```javascript
+result = from(data.people)
+.groupBy( _.gender )
+.select({
+    name: _
+})
+```
+
+And the result is:
+```
+{
+    "male": [
+        { name: 'Darth' },
+        { name: 'Luke' }
+    ],
+    "female": [
+        { name: 'Leia' }
+    ],
+    "n/a": [
+        { name: 'R2-D2' }
+    ]
+}
+```
+
+Note that the result is now an object and no longer an array. 
+
+You can group by more than one property:
+```javascript
+result = from(data.people)
+.groupBy( _.gender, _.metrics.hair_color )
+.select({
+    name: _
+})
+```
+
+And the result is:
+```
+{
+    "male": [
+        "none": [
+            { name: 'Darth' }
+        ],
+        "blond": [
+            { name: 'Luke' }
+        ]
+    ],
+    "female": [
+        "brown": [
+            { name: 'Leia' }
+        ]
+    ],
+    "n/a": [
+        "n/a": [
+            { name: 'R2-D2' }
+        ]
+    ]
+}
+```
+
+Just like previously, you can run `reduce` on the `groupBy` result, instead of `select`:
+
+```javascript
+result = from(data.people)
+.groupBy( _.gender, _.metrics.hair_color )
+.reduce(count())
+```
+
+And the result is:
+```
+{
+    "male": [
+        "none": 1,
+        "blond": 1
+    ],
+    "female": [
+        "brown": 1
+    ],
+    "n/a": [
+        "n/a": 1
+    ]
 }
 ```
 
