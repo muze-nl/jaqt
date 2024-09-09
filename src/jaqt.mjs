@@ -706,7 +706,11 @@ const pointerHandler = (path) => {
         },
         apply(target, thisArg, argumentsList)
         {
-            return target(...argumentsList)
+            let result = target(...argumentsList)
+            if (Array.isArray(result)) {
+                result = result.flat(Infinity)
+            }
+            return result
         }
     }
 }
