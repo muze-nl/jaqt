@@ -9,6 +9,7 @@
 - [Grouping with .groupBy()](#group-groupBy)
 - [Nesting select()](#nesting-select)
 - [Performance](#performance)
+- [More uses of `_`](#_)
 
 <a name="introduction"></a>
 ## Introduction
@@ -1158,3 +1159,64 @@ let data = JSON.parse(jsonString, reviver)
 ```
 
 Or you can choose to use [JSONTag](https://github.com/muze-nl/jsontag) instead of JSON to parse and stringify data, which not only does this out of the box, but also adds optional metadata information to JSON.
+
+<a name="_"></a>
+## More Uses of `_`
+
+Another name for `_` is the Pointer Function. Because it is a function and you can use it to point at specific parts of a dataset. In javascript a Functio is an object, and objects can have properties. So `_.name` can exist, even though `_` is a function. In fact `_.name` is also a function. And it too can have properties.
+
+So this is perfectly valid:
+
+```javascript
+_.metrics(data.people)
+```
+
+It returns:
+```
+[
+    { hair_color: 'blond', skin_color: 'fair', eye_color: 'blue' },
+    { hair_color: 'none', skin_color: 'white', eye_color: 'yellow' },
+    { hair_color: 'brown', skin_color: 'light', eye_color: 'brown' },
+    { hair_color: 'n/a', skin_color: 'white, blue', eye_color: 'red' }
+]
+```
+
+So this is also possible:
+```javascript
+from(_.metrics(data.people))
+.select({
+    hair_color: _
+})
+```
+
+Which returns:
+```
+[
+    { hair_color: 'blond' },
+    { hair_color: 'none' },
+    { hair_color: 'brown' },
+    { hair_color: 'n/a' }
+]
+```
+
+In the last example I both use `_` without any property or function call, and with. The first occurance, in the `from` statement, is a direct function call. This means that `_.metrics(data.people)` is a call to the function `_.metrics` with a single argument, `data.people`. And it returns the array of objects with the `metrics` parts of each person in `data.people`. So `select()` now uses that as its input.
+
+The second occurance is in the `select` statement. There `_` is used without calling it. Instead the `select` function is given an object with a reference to the function. So for each object in the list returned by `from()`, `select` can call the `_` function, and get a different result each time.
+
+In this case `select` actually calls the `_` function with two parameters: `_(data, key)`. `data` will be each of the `metrics` objects in `data.people`, `key` is the property on the left side in the `select` parameter. In this case `hair_color`. So now `_` knows to only return the `hair_color` part.
+
+When you instead ask for a specific property, like this: `_.metrics`, you get a different function. This function is also called with `_(data, key)`, but the `key` part is ignored. Instead the property name used in `_.metrics` is used. And if you add more properties, all the properties will be kept, in order. Then when you call say `_.metrics.hair_color` function, it knows to search for the `metrics` object, and then the `hair_color` property, and return that.
+
+If you've been paying attention, this is not all that `_` does. Remember that `data.people` is an array of objects. So `_.metrics(data.people)` is not the same `data.people.metrics`. Instead, `_` when called, sees that its input is an array (and the property name is not numeric.) So it will call each object in turn and return a new array with all results of the `metrics` property. And it will do so for each array encountered when resolvind the pointer--the list of properties to access.
+
+You can specify a specific object in an array, e.g.:
+```javascript
+_[0].metrics(data.people)
+```
+
+Will only return the first entry:
+```
+{ hair_color: 'blond', skin_color: 'fair', eye_color: 'blue' }
+```
+
+Note that you must use the `[]` syntax to access numeric properties, only properties starting with a letter (or `$` or `_`) can be used with the `.` notation.
