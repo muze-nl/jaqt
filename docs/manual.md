@@ -1181,7 +1181,18 @@ It returns:
 ]
 ```
 
-So this is also possible:
+And similarly:
+
+```javascript
+_.metrics.hair_color(data.people)
+```
+
+Returns:
+```
+[ 'blond', 'none', 'brown', 'n/a' ]
+```
+
+This is also possible:
 ```javascript
 from(_.metrics(data.people))
 .select({
