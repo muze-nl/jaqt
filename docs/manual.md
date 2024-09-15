@@ -17,7 +17,7 @@
 JAQT is a Javascript Query and Transformation library. It is meant to filter and select information from arrays of objects. For example:
 
 ```javascript
-import { _, from } from 'jaqt'
+import { _, from } from '@muze-nl/jaqt'
 
 const data = {
     people: [
@@ -65,31 +65,30 @@ jaqt requires node version 13.2 or higher, as it uses the Proxy class and ES6 im
 Install it like this:
 
 ```
-npm install jaqt
+npm install @muze-nl/jaqt
 ```
 
 Then use it like this:
 
 ```javascript
-import * as jaqt from 'jaqt'
+import * as jaqt from '@muze-nl/jaqt'
 ```
 
 ### Browsers
 
 jaqt will work on any modern browser (as of 2024) with support for ES6 modules and the Proxy class.
 
-Either install it using a bundler, e.g. Parcel:
+Either install it using npm:
 
 ```
 npm install jaqt
-npx parcel build
 ```
 
 Or use it directly from a CDN like jsdeliver.net:
 
-```
+```html
 <script type="module">
-    import * as jaqt from 'https://cdn.jsdelivr.net/npm/jaqt/src/jaqt.mjs'
+    import * as jaqt from 'https://cdn.jsdelivr.net/npm/@muze-nl/jaqt/src/jaqt.mjs'
 </script>
 ```
 
@@ -105,7 +104,7 @@ import { _, from, not, anyOf, allOf, asc, desc, sum, avg, count, max, min, one, 
 
 In the JAQT git repository you will find a directory called `repl`. This contains a node javascript file that allows you to test all the examples yourself. Start it up like this:
 
-```
+```shell
 npm run repl
 ```
 

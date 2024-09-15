@@ -11,13 +11,13 @@ jaqt requires node version 13.2 or higher, as it uses the [Proxy class](https://
 Install it like this:
 
 ```shell
-npm install jaqt
+npm install @muze-nl/jaqt
 ```
 
 Then use it like this:
 
 ```javascript
-import * as jaqt from 'jaqt'
+import * as jaqt from '@muze-n;/jaqt'
 ```
 
 ### browsers
@@ -34,7 +34,7 @@ Or use it directly from a CDN like jsdeliver.net:
 
 ```html
 <script type="module">
-	import * as jaqt from 'https://cdn.jsdelivr.net/npm/jaqt/src/jaqt.mjs'
+	import * as jaqt from 'https://cdn.jsdelivr.net/npm/@muze-nl/jaqt/src/jaqt.mjs'
 </script>
 ```
 
@@ -43,7 +43,7 @@ Or use it directly from a CDN like jsdeliver.net:
 In the remainder of the documentation, we're using the following import statement to make all methods available as global functions. This makes all the examples shorter and easier to read:
 
 ```javascript
-import { _, from, not, anyOf, allOf, asc, desc, sum, avg, count, max, min, one, many, first } from 'jaqt'
+import { _, from, not, anyOf, allOf, asc, desc, sum, avg, count, max, min, one, many, first } from '@muze-nl/jaqt'
 ```
 
 ## First steps
