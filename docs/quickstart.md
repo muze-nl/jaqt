@@ -24,11 +24,10 @@ import * as jaqt from 'jaqt'
 
 jaqt will work on any modern browser (as of 2024) with support for [ES6 modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import) and the [Proxy class](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy).
 
-Either install it using a bundler, e.g. Parcel:
+Either install it in your own project using npm:
 
 ```shell
 npm install jaqt
-npx parcel build
 ```
 
 Or use it directly from a CDN like jsdeliver.net:

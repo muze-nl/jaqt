@@ -104,13 +104,18 @@ import {from, _} from 'jaqt'
 
 from(data)
 .where({
-	friends: {
-		name: 'John'
-	}
+	friends: 'John'
 })
 .select({
 	name: o => o.name+' '+o.lastName
 })
+```
+
+Which results in:
+```
+[
+	{ name: 'Jane Doe'}
+]
 ```
 
 ## Documentation
