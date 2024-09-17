@@ -81,16 +81,16 @@ The examples below all use the data below:
 ```javascript
 let data = JSON.parse(`[
 	{
-		name: "John",
-		lastName: "Doe",
-		friends: [
+		"name": "John",
+		"lastName": "Doe",
+		"friends": [
 			"Jane"
 		]
 	},
 	{
-		name: "Jane",
-		lastName: "Doe",
-		friends: [
+		"name": "Jane",
+		"lastName": "Doe",
+		"friends": [
 			"John"
 		]
 	}
