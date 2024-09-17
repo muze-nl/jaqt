@@ -25,7 +25,7 @@ from(data.people)
     metrics: {
         hair_color: _
     },
-    lastName:_
+    lastName: _
 })
 ```
 <br><br><br>
