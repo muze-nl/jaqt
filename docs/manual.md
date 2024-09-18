@@ -10,6 +10,7 @@
 - [Nesting select()](#nesting-select)
 - [Performance](#performance)
 - [More uses of `_`](#_)
+- [Extending JAQT](#extending)
 
 <a name="introduction"></a>
 ## Introduction
@@ -1230,3 +1231,120 @@ Will only return the first entry:
 ```
 
 Note that you must use the `[]` syntax to access numeric properties, only properties starting with a letter (or `$` or `_`) can be used with the `.` notation.
+
+<a name="extending"></a>
+## Extending JAQT
+
+JAQT comes with a lot of helper functions out of the box, but you may want to add your own. Here is how you can do that for the different parts of JAQT - select, where, orderBy and reduce:
+
+### Select functions
+
+JAQT provides the functions `one`,`many` and `first` to be used inside the pattern for `select`. For example: `many` is defined as:
+
+```javascript
+export function many(pointerFn)
+{
+    return (data, key) => {
+        let result = pointerFn(data, key)
+        if (result == null) {
+            result = []
+        } else if (!Array.isArray(result)) {
+            result = [result]
+        }
+        return result
+    }
+}
+```
+Any helper function for the `select` method, must return a function with 2 parameter:
+
+- data: the object to select properties from
+- key: the left hand name/property in the select pattern
+
+The helper function itself can have any parameters, but should probably start with the pointer function, usually `_` or `_.some.property`.
+
+### Where functions
+
+JAQT provides the following matching functions: `not`,`anyOf` and `allOf`. Here is how you could create your own `between` matching function:
+
+```javascript
+export function between(min, max)
+{
+    return (data) => {
+        return (data <= max && result >= min)
+    }
+}
+```
+
+Now you can use this as:
+
+```javascript
+from(data.people)
+.where({
+    metrics: {
+        height: between(170, 190))
+    }
+})
+.select({
+    name: _
+})
+```
+
+If you want to build a function like `anyOf`, which accepts multiple match criteria, you'll need to use the provided `getMatchFn` function, like this:
+
+```javascript
+import { getMatchFn } from '@muze-nl/jaqt'
+
+function anyOf(...patterns)
+{
+    let matchFns = patterns.map(getMatchFn)
+    return data => matchFns.some(fn => fn(data))
+}
+```
+
+Now you can use any valid expression for the `where` function as parameter for your function.
+
+### Reduce functions
+
+JAQT provides `sum`, `avg`, `count`,`max`,`min` and `distinct` functions out of the box. Here is the definition of `avg`:
+
+```javascript
+function avg(fetchFn)
+{
+    return (accu, ob, index, list) => {
+        accu += parseFloat(fetchFn(ob)) || 0
+        if (index == (list.length-1)) {
+            return accu / list.length
+        }
+        return +accu
+    }
+}
+```
+
+Usually if you want to calculate the average of an array of numbers, you just add them up and divide the remainder by the length of the array. In this case, reduce gives you the index of the current entry `ob` and the list itself, so we can check if the current entry is the last of the array. And only then divide the sum. This saves a lot of divisions, but you do risk the danger of overflowing the `accu` number, if you work with a lot of large numbers.
+
+An alternative is to keep track of the average up to this point:
+
+```javascript
+function avg(fetchFn)
+{
+    return (accu, ob, index) => {
+        return +accu + ((parseFloat(fetchFn(ob)) || 0) - accu) / (index+1)
+    }
+}
+```
+
+Now you have less risk of overflowing `accu`, but this will take longer to calculate.
+
+You may have spotted these lines:
+```javascript
+    return +accu
+```
+
+This is because if you call reduce, like this:
+```javascript
+from(data.people)
+.reduce(avg(_.metrics.height))
+```
+
+JAQT will automatically start the `accu` accumulator with an initial value of `[]`. By returning `+accu` this is automatically converted to `0`.
+
