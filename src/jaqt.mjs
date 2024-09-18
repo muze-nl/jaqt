@@ -4,13 +4,14 @@
  * @param  {mixed}  data The data to check
  * @return {Boolean}     True if data is a plain object
  */
-function isPlainObject(data) 
+function isPlainObject(data)
 {
     return data?.constructor === Object 
         || data?.constructor === undefined // object with null prototype: Object.create(null)
 }
 
-export function one(selectFn, whichOne='last') {
+export function one(selectFn, whichOne='last')
+{
     return (data, key, context) => {
         let result = selectFn(data, key, context)
         if (Array.isArray(result)) {
@@ -26,7 +27,8 @@ export function one(selectFn, whichOne='last') {
     }
 }
 
-export function many(selectFn) {
+export function many(selectFn)
+{
     return (data, key, context) => {
         let result = selectFn(data, key, context)
         if (result == null) {
@@ -38,7 +40,8 @@ export function many(selectFn) {
     }
 }
 
-export function first(...args) {
+export function first(...args)
+{
     return (data, key, context) => {
         let result = null
         for (let arg of args) {
@@ -55,6 +58,8 @@ export function first(...args) {
     }
 }
 
+
+
 /**
  * implements a minimal graphql-alike selection syntax, using plain javascript
  * use with from(...arr).select
@@ -62,7 +67,8 @@ export function first(...args) {
  * @param  {object|function} filter Which keys with which values you want
  * @return Function a function that selects values from objects as defined by filter
  */
-function getSelectFn(filter) {
+function getSelectFn(filter)
+{
     let fns = []
     if (filter instanceof Function) {
         fns.push(filter)
@@ -180,7 +186,8 @@ export const desc = Symbol('desc')
  * @param  {mixed} pattern The comparison pattern
  * @return Function The function to use with toSorted()
  */
-export function getSortFn(pattern) {
+export function getSortFn(pattern)
+{
     let comparisons = Object.entries(pattern)
     let fns = []
     for (let [key,compare] of comparisons) {
@@ -217,7 +224,8 @@ export function getSortFn(pattern) {
  * @param  {object|function} filter Which keys with which values you want
  * @return Function a function that reduces values
  */
-export function getAggregateFn(filter) {
+export function getAggregateFn(filter)
+{
     let fns = []
     if (filter instanceof Function) {
         fns.push(filter)
@@ -231,14 +239,14 @@ export function getAggregateFn(filter) {
                 return a
             })
         } else if (filterValue instanceof Function) {
-            fns.push( (a, o) => {
+            fns.push( (a, o, i, l) => {
                 if (!isPlainObject(a)) {
                     a = {}
                 }
                 if (o.reduce) {
                     a[filterKey] = o.reduce(filterValue, a[filterKey] || [])
                 } else {
-                    a[filterKey] = filterValue(a[filterKey] || [], o)
+                    a[filterKey] = filterValue(a[filterKey] || [], o, i, l)
                 }
                 return a
             })
@@ -255,10 +263,10 @@ export function getAggregateFn(filter) {
     if (fns.length==1) {
         return fns[0]
     }
-    return (a, o) => {
+    return (a, o, i, l) => {
         let result = {}
         for (let fn of fns) {
-            Object.assign(result, fn(a,o))
+            Object.assign(result, fn(a, o, i, l))
         }
         return result
     }
@@ -271,7 +279,8 @@ export function getAggregateFn(filter) {
  * array is a group
  * 
  */
-function getMatchingGroups(data, pointerFn) {
+function getMatchingGroups(data, pointerFn)
+{
     let result = {}
     for (let entity of data) {
         let groups = pointerFn(entity)
@@ -298,7 +307,8 @@ function getMatchingGroups(data, pointerFn) {
  * @param (object) data     The data to parse and get the group from
  * @param (array) properties  The properties to group by, in order, should be pointer functions
  */
-function groupBy(data, pointerFunctions) {
+function groupBy(data, pointerFunctions)
+{
     let pointerFn = pointerFunctions.shift()
     let groups = getMatchingGroups(data, pointerFn)
     if (pointerFunctions.length) {
@@ -315,7 +325,8 @@ function groupBy(data, pointerFunctions) {
  * @param fetchFn   the function that fetches the correct value, e.g. _.price
  * @return Function function (value, accumulator) => accumulator + value
  */
-export function sum(fetchFn) {
+export function sum(fetchFn)
+{
     return (a,o) => {
         if (Array.isArray(a)) {            
             a = 0
@@ -331,16 +342,10 @@ export function sum(fetchFn) {
  * @param fetchFn   the function that fetches the correct value, e.g. _.price
  * @return Function function (value, accumulator) => average(accumulator + value)
  */
-export function avg(fetchFn) {
-    return (a,o) => {
-        if (Array.isArray(a)) {
-            a = new Number(0)
-            a.count = 0
-        }
-        let count = a.count+1
-        a = new Number(a + ((parseFloat(fetchFn(o)) || 0) - a) / count)
-        a.count = count
-        return a
+export function avg(fetchFn)
+{
+    return (a,o,count) => {
+        return +a + ((parseFloat(fetchFn(o)) || 0) - a) / (count+1)
     }
 }
 
@@ -350,7 +355,8 @@ export function avg(fetchFn) {
  * @param fetchFn   the function that fetches the correct value, e.g. _.name
  * @return Function 
  */
-export function distinct(fetchFn) {
+export function distinct(fetchFn)
+{
     return (a, o) => {
         let v = fetchFn(o)
         if (!a.includes[v]) {
@@ -366,7 +372,8 @@ export function distinct(fetchFn) {
  * @param fetchFn   the function that fetches the correct value, e.g. _.price
  * @return Function function (value, accumulator) => accumulator + 1
  */
-export function count() {
+export function count()
+{
     return (a, o) => {
         if (Array.isArray(a)) {
             a = 0
@@ -381,7 +388,8 @@ export function count() {
  * @param fetchFn   the function that fetches the correct value, e.g. _.price
  * @return Function function (value, accumulator) => Math.max(accumulator, value)
  */
-export function max(fetchFn) {
+export function max(fetchFn)
+{
     return (a,o) => {
         if (Array.isArray(a)) {
             a = Number.NEGATIVE_INFINITY
@@ -400,7 +408,8 @@ export function max(fetchFn) {
  * @param fetchFn   the function that fetches the correct value, e.g. _.price
  * @return Function function (value, accumulator) => Math.min(accumulator, value)
  */
-export function min(fetchFn) {
+export function min(fetchFn)
+{
     return (a,o) => {
         if (Array.isArray(a)) {
             a = Number.POSITIVE_INFINITY
@@ -412,6 +421,7 @@ export function min(fetchFn) {
         return a
     }
 }
+
 
 /**
  * Not inverts the result from the matches function.
@@ -654,7 +664,8 @@ export function from(data)
  * @param {array} path The list of properties to access in order
  * @return {function} The accessor function that returns the data matching the path
  */
-function getPointerFn(path) {
+function getPointerFn(path)
+{
     /**
      * The json pointer function
      * @param  {mixed} data Any data
