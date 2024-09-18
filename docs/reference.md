@@ -17,6 +17,7 @@
 	- [avg()](#avg)
 	- [min()](#min)
 	- [max()](#max)
+	- [distinct](#distinct)
 - [nested queries](#nested)
 
 <a name="from"></a>
@@ -473,6 +474,16 @@ Returns the maximum value of all entries.
 from(data.cars)
 .groupBy(_.category)
 .reduce(max(_.price))
+```
+
+<a name="distinct"></a>
+### distinct
+
+Returns an array of distinct values.
+
+```javascript
+from(data.cars)
+.reduce(distinct(_.category))
 ```
 
 <a name="custom-reduce"></a>
