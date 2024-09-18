@@ -116,8 +116,8 @@ tap.test("groupby-avg", t => {
 	let grouped = from(products)
 	.groupBy(_.category)
 	.reduce(avg(_.price))
-	t.ok(grouped.Car==37500)
-	t.ok(grouped.Bike==1750)
+	t.equal(grouped.Car, 37500)
+	t.equal(grouped.Bike, 1750)
 	t.end()
 })
 
