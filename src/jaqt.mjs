@@ -1,13 +1,12 @@
 /**
- * checks if data is a plain object and not null, String, Number, Boolean or Array or other classes
- * 
+ * checks if data is a wrapper object for one of the primitive types
+ *
  * @param  {mixed}  data The data to check
- * @return {Boolean}     True if data is a plain object
+ * @return {Boolean}     True if data is a primitive wrapper object
  */
-function isPlainObject(data)
+function isPrimitiveWrapper(data)
 {
-    return data?.constructor === Object 
-        || data?.constructor === undefined // object with null prototype: Object.create(null)
+    return [String, Boolean, Number, BigInt].includes(data?.constructor)
 }
 
 export function one(selectFn, whichOne='last')
@@ -63,7 +62,7 @@ export function first(...args)
 /**
  * implements a minimal graphql-alike selection syntax, using plain javascript
  * use with from(...arr).select
- * 
+ *
  * @param  {object|function} filter Which keys with which values you want
  * @return Function a function that selects values from objects as defined by filter
  */
@@ -73,22 +72,22 @@ function getSelectFn(filter)
     if (filter instanceof Function) {
         fns.push(filter)
     } else for (const [filterKey, filterValue] of Object.entries(filter)) {
-        if (isPlainObject(filterValue)) {
-            fns.push( (data) => { 
-                return {
-                    [filterKey]: from(data[filterKey]).select(filterValue)
-                }
-            })
-        } else if (filterValue instanceof Function) {
+        if (filterValue instanceof Function) {
             fns.push( (data) => {
                 return {
                     [filterKey]: filterValue(data, filterKey, 'select')
                 }
             })
+        } else if (!isPrimitiveWrapper(filterValue)) {
+            fns.push( (data) => {
+                return {
+                    [filterKey]: from(data[filterKey]).select(filterValue)
+                }
+            })
         } else {
             fns.push( (data) => {
                 return {
-                    [filterKey]: filterValue 
+                    [filterKey]: filterValue
                 }
             })
         }
@@ -110,7 +109,7 @@ function getSelectFn(filter)
  * Pattern can be a function, a regular expression, an object or a literal value
  * The pattern is matched recursively
  * Use with from(...arr).where
- * 
+ *
  * @param  {mixed} pattern The pattern to test
  * @return Function        The filter function
  */
@@ -123,7 +122,7 @@ export function getMatchFn(pattern)
         fns.push((data) => pattern.test(data))
     } else if (pattern instanceof Function) {
         fns.push((data) => pattern(data))
-    } else if (isPlainObject(pattern)) {
+    } else if (!isPrimitiveWrapper(pattern)) {
         let patternMatches = {}
         for (const [wKey, wVal] of Object.entries(pattern)) {
             patternMatches[wKey] = getMatchFn(wVal)
@@ -132,7 +131,7 @@ export function getMatchFn(pattern)
             if (Array.isArray(data)) {
                 return data.filter(element => matchFn(element)).length>0
             }
-            if (!isPlainObject(data)) {
+            if (isPrimitiveWrapper(data)) {
                 return false
             }
             for (let wKey in patternMatches) {
@@ -193,13 +192,13 @@ export function getSortFn(pattern)
     for (let [key,compare] of comparisons) {
         if (compare instanceof Function) {
             fns.push(compare)
-        } else if (isPlainObject(compare)) {
-            let subFn = getSortFn(compare)
-            fns.push((a,b) => subFn(a[key],b[key]))
         } else if (compare === asc) {
             fns.push((a,b) => (a[key]>b[key] ? 1 : a[key]<b[key] ? -1: 0))
         } else if (compare === desc) {
             fns.push((a,b) => (a[key]<b[key] ? 1 : a[key]>b[key] ? -1: 0))
+        } else if (!isPrimitiveWrapper(compare)) {
+            let subFn = getSortFn(compare)
+            fns.push((a,b) => subFn(a[key],b[key]))
         } else {
             throw new Error('Unknown sort order',compare)
         }
@@ -230,17 +229,9 @@ export function getAggregateFn(filter)
     if (filter instanceof Function) {
         fns.push(filter)
     } else for (const [filterKey, filterValue] of Object.entries(filter)) {
-        if (isPlainObject(filterValue)) {
-            fns.push( (a, o) => { 
-                if (!isPlainObject(a)) {
-                    a = {}
-                }
-                a[filterKey] = from(o[filterKey]).reduce(filterValue, [])
-                return a
-            })
-        } else if (filterValue instanceof Function) {
+        if (filterValue instanceof Function) {
             fns.push( (a, o, i, l) => {
-                if (!isPlainObject(a)) {
+                if (isPrimitiveWrapper(a)) {
                     a = {}
                 }
                 if (o.reduce) {
@@ -250,12 +241,20 @@ export function getAggregateFn(filter)
                 }
                 return a
             })
-        } else {
+        } else if (!isPrimitiveWrapper(filterValue)) {
             fns.push( (a, o) => {
-                if (!isPlainObject(a)) {
+                if (isPrimitiveWrapper(a)) {
                     a = {}
                 }
-                a[filterKey] = filterValue 
+                a[filterKey] = from(o[filterKey]).reduce(filterValue, [])
+                return a
+            })
+        } else {
+            fns.push( (a, o) => {
+                if (isPrimitiveWrapper(a)) {
+                    a = {}
+                }
+                a[filterKey] = filterValue
                 return a
             })
         }
@@ -277,7 +276,7 @@ export function getAggregateFn(filter)
  * With support for objects being part of multiple groups
  * So if pointerFn() returns an array, each element of the
  * array is a group
- * 
+ *
  */
 function getMatchingGroups(data, pointerFn)
 {
@@ -303,7 +302,7 @@ function getMatchingGroups(data, pointerFn)
 
 /**
  * Returns a function that groups an array by one or more values defined in the pattern
- * 
+ *
  * @param (object) data     The data to parse and get the group from
  * @param (array) properties  The properties to group by, in order, should be pointer functions
  */
@@ -321,14 +320,14 @@ function groupBy(data, pointerFunctions)
 
 /**
  * Creates a function to sum (add) all grouped values, assumes/enforces all values are floats
- * 
+ *
  * @param fetchFn   the function that fetches the correct value, e.g. _.price
  * @return Function function (value, accumulator) => accumulator + value
  */
 export function sum(fetchFn)
 {
     return (a,o) => {
-        if (Array.isArray(a)) {            
+        if (Array.isArray(a)) {
             a = 0
         }
         a += parseFloat(fetchFn(o)) || 0
@@ -337,8 +336,8 @@ export function sum(fetchFn)
 }
 
 /**
- * Creates a function to average all grouped values, assumes/enforces all values are floats 
- * 
+ * Creates a function to average all grouped values, assumes/enforces all values are floats
+ *
  * @param fetchFn   the function that fetches the correct value, e.g. _.price
  * @return Function function (value, accumulator) => average(accumulator + value)
  */
@@ -351,9 +350,9 @@ export function avg(fetchFn)
 
 /**
  * Creates a function that removes duplicate values from the grouped data
- * 
+ *
  * @param fetchFn   the function that fetches the correct value, e.g. _.name
- * @return Function 
+ * @return Function
  */
 export function distinct(fetchFn)
 {
@@ -368,7 +367,7 @@ export function distinct(fetchFn)
 
 /**
  * Creates a function to count all grouped values
- * 
+ *
  * @param fetchFn   the function that fetches the correct value, e.g. _.price
  * @return Function function (value, accumulator) => accumulator + 1
  */
@@ -383,8 +382,8 @@ export function count()
 }
 
 /**
- * Creates a function to find the maximum value in all grouped values, assumes/enforces all values are floats 
- * 
+ * Creates a function to find the maximum value in all grouped values, assumes/enforces all values are floats
+ *
  * @param fetchFn   the function that fetches the correct value, e.g. _.price
  * @return Function function (value, accumulator) => Math.max(accumulator, value)
  */
@@ -403,8 +402,8 @@ export function max(fetchFn)
 }
 
 /**
- * Creates a function to find the minimum value in all grouped values, assumes/enforces all values are floats 
- * 
+ * Creates a function to find the minimum value in all grouped values, assumes/enforces all values are floats
+ *
  * @param fetchFn   the function that fetches the correct value, e.g. _.price
  * @return Function function (value, accumulator) => Math.min(accumulator, value)
  */
@@ -427,11 +426,11 @@ export function min(fetchFn)
  * Not inverts the result from the matches function.
  * It returns a function expecting a data parameter and inverts the result
  * of matching that data with the pattern given to not()
- * 
+ *
  * @param  {mixed} pattern The pattern to match not
  * @return {function}      A function that inverts the match, with a single data parameter
  */
-export function not(...pattern) 
+export function not(...pattern)
 {
     let matchFn = getMatchFn(pattern)
     return data => !matchFn(data)
@@ -439,11 +438,11 @@ export function not(...pattern)
 
 /**
  * AnyOf returns a function that returns true if any of the patterns match the data parameter
- * 
+ *
  * @param  {...mixed} patterns The patterns to test
  * @return {Boolean}           True if at least one pattern matches
  */
-export function anyOf(...patterns) 
+export function anyOf(...patterns)
 {
     let matchFns = patterns.map(pattern => getMatchFn(pattern))
     return data => matchFns.some(fn => fn(data))
@@ -451,7 +450,7 @@ export function anyOf(...patterns)
 
 /**
  * AllOf returns a function that returns true if all of the patterns match the data parameter
- * 
+ *
  * @param  {...mixed} patterns The patterns to test
  * @return {Boolean}           True if all of the patterns match
  */
@@ -468,11 +467,11 @@ export function allOf(...patterns)
  * Handler for proxying functions like filter, map, etc. So that
  * results of those functions will still be proxied when using from()
  * and you can chain .select() after it
- * 
+ *
  * @type {Object}
  */
 const FunctionProxyHandler = {
-    apply(target, thisArg, argumentsList) 
+    apply(target, thisArg, argumentsList)
     {
         let result = target.apply(thisArg,argumentsList)
         if (typeof result === 'object') {
@@ -484,11 +483,11 @@ const FunctionProxyHandler = {
 
 /**
  * Handler for proxying data returned with from()
- * 
+ *
  * @type {Object}
  */
 const DataProxyHandler = {
-    get(target, property) 
+    get(target, property)
     {
         if (Array.isArray(target)) {
             switch(property) {
@@ -514,7 +513,7 @@ const DataProxyHandler = {
                         let temp = target.reduce(aggregateFn, initial)
                         if (Array.isArray(temp)) {
                             return new Proxy(temp, DataProxyHandler)
-                        } else if (isPlainObject(temp)) {
+                        } else if (!isPrimitiveWrapper(temp)) {
                             return new Proxy(temp, GroupByProxyHandler)
                         } else {
                             return temp
@@ -580,7 +579,7 @@ const GroupByProxyHandler = {
                             let temp = target[group].reduce(aggregateFn, initial)
                             if (Array.isArray(temp)) {
                                 result[group] = new Proxy(temp, DataProxyHandler)
-                            } else if (isPlainObject(temp)) {
+                            } else if (!isPrimitiveWrapper(temp)) {
                                 result[group] = new Proxy(temp, GroupByProxyHandler)
                             } else {
                                 result[group] = temp
@@ -598,18 +597,18 @@ const GroupByProxyHandler = {
                 }
                 return target[property]
             break
-        }        
+        }
     }
 }
 
 /**
  * Handler for proxying null of undefined values, so that
  * you can still chain the from.where.select functions
- * 
+ *
  * @type {Object}
  */
 const EmptyHandler = {
-    get(target, property) 
+    get(target, property)
     {
         switch(property) {
             case 'where':
@@ -644,11 +643,11 @@ const EmptyHandler = {
 /**
  * This returns a proxy object for the given data, that adds
  * .where() and .select() functions
- * 
+ *
  * @param  {mixed} data The data to proxy
  * @return {Proxy}      The proxy
  */
-export function from(data) 
+export function from(data)
 {
     if (!data || typeof data !== 'object') {
         return new Proxy([], EmptyHandler)
@@ -660,7 +659,7 @@ export function from(data)
  * This is the function factory that builds the _ function
  * It will return a function that walks over the root object to
  * return the correct data
- * 
+ *
  * @param {array} path The list of properties to access in order
  * @return {function} The accessor function that returns the data matching the path
  */
@@ -697,7 +696,7 @@ function getPointerFn(path)
  * Handler for the getval proxy, used to implement _
  * The get trap handles things like _.key, it returns a function
  * so that select can apply it on result objects
- * 
+ *
  * @type {Object}
  */
 const pointerHandler = (path) => {
@@ -727,9 +726,9 @@ const pointerHandler = (path) => {
 }
 
 /**
- * Placeholder in select queries that gets replaced with the 
+ * Placeholder in select queries that gets replaced with the
  * object or value being selected, or a specific key of that object
- * 
+ *
  * @type {Proxy}
  */
 export const _ = new Proxy(getPointerFn(), pointerHandler())
