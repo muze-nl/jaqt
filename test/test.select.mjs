@@ -425,3 +425,49 @@ tap.test('select-reduce-object', t => {
 	t.same(2, +result.c)
 	t.end()
 })
+
+tap.test('select-non-primitive-values', t => {
+	let cleanObject = Object.create(null)
+	cleanObject.title = 'A title'
+	let testData = [{
+		'number': new Number(1),
+		'boolean': new Boolean(true),
+		'string': new String('test'),
+		'clean': cleanObject
+	}]
+	let result = from(testData)
+	.select({
+		number: _,
+		boolean: _,
+		string: _,
+		clean: _
+	})
+	t.same(result, testData)
+
+	result = from(testData)
+	.where({
+		number: 1
+	})
+	t.same(result, testData)
+
+	result = from(testData)
+	.where({
+		boolean: true
+	})
+	t.same(result, testData)
+
+	result = from(testData)
+	.where({
+		string: 'test'
+	})
+	t.same(result, testData)
+
+	result = from(testData)
+	.where({
+		clean: {
+			title: 'A title'
+		}
+	})
+	t.same(result, testData)
+	t.end()
+})
