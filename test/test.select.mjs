@@ -436,9 +436,9 @@ tap.test('select-distinct', t => {
 ]
 `)
 	let result = from(data).select({
-		friends: distinct(_.friends)
+		distinct: distinct(_.friends)
 	})
-	t.same(result[0].friends, ["Joe","Jane"] )
+	t.same(result[0].distinct, ["Joe","Jane"] )
 	t.end()
 })
 

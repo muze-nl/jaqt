@@ -357,12 +357,16 @@ export function avg(fetchFn)
 export function distinct(fetchFn)
 {
     return (a, o, context) => {
+        let v
         if (context=='select') {
             // a is the data param in select() context, o is the key
-            if (Array.isArray(a[o])) { 
-                return a[o].filter((v,i,arr) => arr.indexOf(v)===i)
+            v = fetchFn(a)
+            if (Array.isArray(v)) { 
+                return v.filter((val,i,arr) => arr.indexOf(val)===i)
             }
-        } else { // assume context is reduce, since context is the 3rd param, in reduce that contains the index
+        } else { 
+            // assume context is reduce, since context is the 3rd param, in reduce that contains the index
+            // a is the accumulator, o is the current object/value
             let v = fetchFn(o)
             if (!a.includes[v]) {
                 a.push(v)
