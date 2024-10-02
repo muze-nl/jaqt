@@ -1,4 +1,4 @@
-import { _, from, asc, desc, many, one, first, avg, count } from '../src/jaqt.mjs'
+import { _, from, asc, desc, many, one, first, avg, count, distinct } from '../src/jaqt.mjs'
 import tap from 'tap'
 
 const data = [
@@ -423,6 +423,22 @@ tap.test('select-reduce-object', t => {
 	})
 	t.same(187,+result.h)
 	t.same(2, +result.c)
+	t.end()
+})
+
+tap.test('select-distinct', t => {
+	let data = JSON.parse(`
+[
+	{
+		"name":"Joe",
+		"friends": ["Joe","Joe","Jane"]
+	}
+]
+`)
+	let result = from(data).select({
+		friends: distinct(_.friends)
+	})
+	t.same(result[0].friends, ["Joe","Jane"] )
 	t.end()
 })
 
