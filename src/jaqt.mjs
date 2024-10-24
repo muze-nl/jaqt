@@ -500,6 +500,9 @@ const FunctionProxyHandler = {
 const DataProxyHandler = {
     get(target, property)
     {
+        if (typeof property === 'symbol') { // handles iterators and other stuff we don't want to change
+            return target[property]
+        }
         if (Array.isArray(target)) {
             switch(property) {
                 case 'where':

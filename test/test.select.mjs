@@ -487,3 +487,15 @@ tap.test('select-non-primitive-values', t => {
 	t.same(result, testData)
 	t.end()
 })
+
+tap.test('array-for-of', t => {
+	let testData = [1,2,3,4]
+	let result = from(testData)
+	let test = []
+	for(let v of result) {
+		test.push(v)
+	}
+	t.same(test,testData)
+	t.same(result,testData)
+	t.end()
+})
