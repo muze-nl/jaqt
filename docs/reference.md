@@ -9,6 +9,7 @@
 	- [one()](#one)
 	- [meny()](#many)
 	- [first()](#first)
+	- [distinct()](#select-distinct)
 - [orderBy()](#orderBy)
 - [groupBy()](#groupBy)
 - [reduce()](#reduce)
@@ -17,7 +18,7 @@
 	- [avg()](#avg)
 	- [min()](#min)
 	- [max()](#max)
-	- [distinct](#distinct)
+	- [distinct](#reduce-distinct)
 - [nested queries](#nested)
 
 <a name="from"></a>
@@ -214,6 +215,18 @@ from(data)
 ```
 
 This function will test each parameter, in order. The first selection that returns a value is used. If you pass in a parameter that isn't a function, that value will be used as the result if none of the previous selections matched anything.
+
+<a name="select-distinct"></a>
+### distinct
+
+Returns an array of distinct values.
+
+```javascript
+from(data.cars)
+.select({
+	category: distinct(_.category)
+})
+```
 
 <a name="orderBy"></a>
 ### orderBy()
@@ -476,7 +489,7 @@ from(data.cars)
 .reduce(max(_.price))
 ```
 
-<a name="distinct"></a>
+<a name="reduce-distinct"></a>
 ### distinct
 
 Returns an array of distinct values.

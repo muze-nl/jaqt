@@ -1239,7 +1239,7 @@ JAQT comes with a lot of helper functions out of the box, but you may want to ad
 
 ### Select functions
 
-JAQT provides the functions `one`,`many` and `first` to be used inside the pattern for `select`. For example: `many` is defined as:
+JAQT provides the functions `one`, `many`, `first` and `distinct` to be used inside the pattern for `select`. For example: `many` is defined as:
 
 ```javascript
 export function many(pointerFn)
@@ -1348,3 +1348,24 @@ from(data.people)
 
 JAQT will automatically start the `accu` accumulator with an initial value of `[]`. By returning `+accu` this is automatically converted to `0`.
 
+## Polyglot functions
+
+You may have noticed that `distinct` is grouped in with functions for use with `select` as well as `reduce`. That is because `distinct` is written to be able to be used by both. The difference between a `reduce` function and a `select` function is that reducers are called like this:
+
+```javascript
+reducer(accumulator, currentValue, currentIndex, array)
+```
+
+Whereas selector functions are called like this:
+
+```javascript
+selector(data, key, 'select')
+```
+
+By testing if the third parameter is 'select', or a number, you can tell which context the function is running in. This is not a feature for the 'sort' or 'groupBy' contexts, as I found no overlap in functionality there. A sort function will always be called like this:
+
+```javascript
+sorter(a,b) // => -1, 0, or 1
+```
+
+And a group function is simply a selector. Whose return values will be used to group results by. Here however, the selector function is called with only the `data` parameter.
