@@ -136,7 +136,7 @@ export function getMatchFn(pattern)
             }
             for (let wKey in patternMatches) {
                 let patternMatchFn = patternMatches[wKey]
-                if (!patternMatchFn(data[wKey])) {
+                if (!patternMatchFn(data?.[wKey])) {
                     return false
                 }
             }
