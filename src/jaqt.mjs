@@ -105,7 +105,7 @@ function getSelectFn(filter)
                 return result
             })
         } else {
-            fns.push( (data) => {
+            fns.push( () => {
                 return {
                     [filterKey]: filterValue
                 }
@@ -176,7 +176,6 @@ export function getMatchFn(pattern)
         return fns[0]
     }
     return (data) => {
-        let result = {}
         for (let fn of fns) {
             if (!fn(data)) {
                 return false
@@ -270,7 +269,7 @@ export function getAggregateFn(filter)
                 return a
             })
         } else {
-            fns.push( (a, o) => {
+            fns.push( (a) => {
                 if (isPrimitiveWrapper(a)) {
                     a = {}
                 }
@@ -404,7 +403,7 @@ export function distinct(fetchFn)
  */
 export function count()
 {
-    return (a, o) => {
+    return (a) => {
         if (Array.isArray(a)) {
             a = 0
         }
