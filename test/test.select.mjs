@@ -78,6 +78,12 @@ tap.test('select-string', t => {
 	t.end()
 })
 
+tap.test('select-value', t => {
+	let result = from(data).select(_.name)
+	t.same(result[0], data[0].name)
+	t.end()
+})
+
 tap.test('select-alt', t => {
 	let result = from(data).select({
 		name: _.name
@@ -301,7 +307,7 @@ tap.test('select-from-null', t => {
 		name: _,
 		foo: _
 	})
-	let check = result == null
+	let check = result === undefined
 	t.ok(check)
 	t.end()
 })
@@ -314,7 +320,7 @@ tap.test('select-from-null-child', t => {
 			name: _
 		}
 	})
-	let check = result[0].foo == null
+	let check = result[0].foo === undefined
 	t.ok(check)
 	t.end()
 })
@@ -330,7 +336,9 @@ tap.test('select-null-property', t => {
 			bar: _.name
 		}
 	})
-	let check = result[0].foo == null
+	let check = result[0].isNull === undefined
+	t.ok(check)
+	check = result[0].hasNull[0] === undefined
 	t.ok(check)
 	t.end()	
 })
@@ -497,5 +505,24 @@ tap.test('array-for-of', t => {
 	}
 	t.same(test,testData)
 	t.same(result,testData)
+	t.end()
+})
+
+tap.test('select-many-object', t => {
+	let result = from(data)
+	.select({
+		friends: many({
+			name: _
+		}),
+		metrics: many({
+			hair_color: _
+		}),
+		foo: many({
+			bar: _
+		})
+	})
+	t.same(result[0].foo, [])
+	t.same(result[0].friends[0].name, 'Jane')
+	t.same(result[0].metrics[0].hair_color, 'brown')
 	t.end()
 })

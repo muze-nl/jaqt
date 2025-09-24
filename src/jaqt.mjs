@@ -12,6 +12,12 @@ function isPrimitiveWrapper(data)
 export function one(selectFn, whichOne='last')
 {
     return (data, key, context) => {
+        if (typeof selectFn !== 'function') {
+            let selectFnOriginal = selectFn
+            selectFn = (o) => {
+                return from(o[key]).select(selectFnOriginal);
+            }
+        }
         let result = selectFn(data, key, context)
         if (Array.isArray(result)) {
             if (whichOne=='last') {
@@ -29,6 +35,12 @@ export function one(selectFn, whichOne='last')
 export function many(selectFn)
 {
     return (data, key, context) => {
+        if (typeof selectFn !== 'function') {
+            let selectFnOriginal = selectFn
+            selectFn = (o) => {
+                return from(o[key]).select(selectFnOriginal);
+            }
+        }
         let result = selectFn(data, key, context)
         if (result == null) {
             result = []
@@ -42,7 +54,7 @@ export function many(selectFn)
 export function first(...args)
 {
     return (data, key, context) => {
-        let result = null
+        let result
         for (let arg of args) {
             if (typeof arg == 'function') {
                 result = arg(data, key, context)
@@ -53,7 +65,7 @@ export function first(...args)
                 return arg
             }
         }
-        return null
+        return undefined
     }
 }
 
@@ -74,15 +86,23 @@ function getSelectFn(filter)
     } else for (const [filterKey, filterValue] of Object.entries(filter)) {
         if (filterValue instanceof Function) {
             fns.push( (data) => {
-                return {
+                const result = {
                     [filterKey]: filterValue(data, filterKey, 'select')
                 }
+                if (typeof result[filterKey] === 'undefined' && typeof data?.[filterKey] === 'undefined') {
+                    return undefined
+                }
+                return result
             })
         } else if (!isPrimitiveWrapper(filterValue)) {
             fns.push( (data) => {
-                return {
+                const result = {
                     [filterKey]: from(data[filterKey]).select(filterValue)
                 }
+                if (typeof result[filterKey] === 'undefined' && typeof data?.[filterKey] === 'undefined') {
+                    return undefined
+                }
+                return result
             })
         } else {
             fns.push( (data) => {
@@ -633,7 +653,7 @@ const EmptyHandler = {
             case 'reduce':
             case 'select':
                 return function() {
-                    return null
+                    return undefined
                 }
             break
             case 'orderBy':
@@ -650,7 +670,7 @@ const EmptyHandler = {
         if (target && typeof target[property]==='function') {
             return new Proxy(target[property], FunctionProxyHandler)
         }
-        return null
+        return undefined
     }
 }
 
