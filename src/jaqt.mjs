@@ -519,13 +519,14 @@ const FunctionProxyHandler = {
 const DataProxyHandler = {
     get(target, property)
     {
+        let result
         if (typeof property === 'symbol') { // handles iterators and other stuff we don't want to change
-            return target[property]
+            result = target[property]
         }
         if (Array.isArray(target)) {
             switch(property) {
                 case 'where':
-                    return function(shape) {
+                    result = function(shape) {
                         let matchFn = getMatchFn(shape)
                         return new Proxy(target
                             .filter(element => matchFn(element))
@@ -533,7 +534,7 @@ const DataProxyHandler = {
                     }
                 break
                 case 'select':
-                    return function(filter) {
+                    result = function(filter) {
                         let selectFn = getSelectFn(filter)
                         return new Proxy(target
                             .map(selectFn)
@@ -541,7 +542,7 @@ const DataProxyHandler = {
                     }
                 break
                 case 'reduce':
-                    return function(pattern, initial=[]) {
+                    result = function(pattern, initial=[]) {
                         let aggregateFn = getAggregateFn(pattern)
                         let temp = target.reduce(aggregateFn, initial)
                         if (Array.isArray(temp)) {
@@ -554,7 +555,7 @@ const DataProxyHandler = {
                     }
                 break
                 case 'orderBy':
-                    return function(pattern) {
+                    result = function(pattern) {
                         let sortFn = getSortFn(pattern)
                         return new Proxy(target
                             .toSorted(sortFn)
@@ -562,7 +563,7 @@ const DataProxyHandler = {
                     }
                 break
                 case 'groupBy':
-                    return function(...groups) {
+                    result = function(...groups) {
                         let temp = groupBy(target, groups)
                         return new Proxy(temp
                             , GroupByProxyHandler)
@@ -570,27 +571,31 @@ const DataProxyHandler = {
                 break
             }
         }
-        if (target && typeof target==='object') {
+        if (!result && target && typeof target==='object') {
             if (property==='select') {
-                return function(filter) {
+                result = function(filter) {
                     let selector = getSelectFn(filter)
                     return new Proxy(selector(target), DataProxyHandler)
                 }
             }
         }
-        if (target && typeof target[property]==='function') {
-            return new Proxy(target[property], FunctionProxyHandler)
+        if (!result && target && typeof target[property]==='function') {
+            result = new Proxy(target[property], FunctionProxyHandler)
         }
-        return target[property]
+        if (!result) {
+            result = target[property]
+        }
+        return result
     }
 }
 
 const GroupByProxyHandler = {
     get(target, property)
     {
+        let result
         switch(property) {
             case 'select':
-                return function(filter) {
+                result = function(filter) {
                     let selectFn = getSelectFn(filter)
                     let result = {}
                     for (let group in target) {
@@ -604,7 +609,7 @@ const GroupByProxyHandler = {
                 }
             break
             case 'reduce':
-                return function(pattern, initial=[]) {
+                result = function(pattern, initial=[]) {
                     let aggregateFn = getAggregateFn(pattern)
                     let result = {}
                     for (let group in target) {
@@ -626,11 +631,13 @@ const GroupByProxyHandler = {
             break
             default:
                 if (Array.isArray(target[property])) {
-                    return from(target[property])
+                    result = from(target[property])
+                } else {
+                    result = target[property]
                 }
-                return target[property]
             break
         }
+        return result
     }
 }
 
@@ -643,33 +650,34 @@ const GroupByProxyHandler = {
 const EmptyHandler = {
     get(target, property)
     {
+        let result = undefined
         switch(property) {
             case 'where':
-                return function() {
+                result = function() {
                     return new Proxy([], EmptyHandler)
                 }
             break
             case 'reduce':
             case 'select':
-                return function() {
+                result = function() {
                     return undefined
                 }
             break
             case 'orderBy':
-                return function() {
+                result = function() {
                     return new Proxy([], EmptyHandler)
                 }
             break
             case 'groupBy':
-                return function() {
+                result = function() {
                     return new Proxy([], EmptyHandler)
                 }
             break
         }
-        if (target && typeof target[property]==='function') {
-            return new Proxy(target[property], FunctionProxyHandler)
+        if (!result && target && typeof target[property]==='function') {
+            result = new Proxy(target[property], FunctionProxyHandler)
         }
-        return undefined
+        return result
     }
 }
 
