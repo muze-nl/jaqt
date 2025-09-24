@@ -707,14 +707,15 @@ function getPointerFn(path)
     return (data, key) => {
         if (path?.length>0) {
             let localPath = path.slice()
-            let prop
-            while(prop = localPath.shift()) {
+            let prop = localPath.shift()
+            while(prop) {
                 if (Array.isArray(data) && parseInt(prop)!=prop) {
                     localPath.unshift(prop) // put it back to call in .map
                     return data.map(getPointerFn(localPath))
                 } else {
                     data = data?.[prop]
                 }
+                prop = localPath.shift()
             }
             return data
         } else if (key) {
