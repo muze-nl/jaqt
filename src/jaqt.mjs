@@ -54,7 +54,7 @@ export function many(selectFn)
 export function first(...args)
 {
     return (data, key, context) => {
-        let result
+        let result = null
         for (let arg of args) {
             if (typeof arg == 'function') {
                 result = arg(data, key, context)
@@ -65,7 +65,7 @@ export function first(...args)
                 return arg
             }
         }
-        return undefined
+        return null
     }
 }
 
@@ -89,9 +89,9 @@ function getSelectFn(filter)
                 const result = {
                     [filterKey]: filterValue(data, filterKey, 'select')
                 }
-                if (typeof result[filterKey] === 'undefined' && typeof data?.[filterKey] === 'undefined') {
-                    return undefined
-                }
+                // if (typeof result[filterKey] === 'undefined' && typeof data?.[filterKey] === 'undefined') {
+                //     return undefined
+                // }
                 return result
             })
         } else if (!isPrimitiveWrapper(filterValue)) {
@@ -99,9 +99,9 @@ function getSelectFn(filter)
                 const result = {
                     [filterKey]: from(data[filterKey]).select(filterValue)
                 }
-                if (typeof result[filterKey] === 'undefined' && typeof data?.[filterKey] === 'undefined') {
-                    return undefined
-                }
+                // if (typeof result[filterKey] === 'undefined' && typeof data?.[filterKey] === 'undefined') {
+                //     return undefined
+                // }
                 return result
             })
         } else {
@@ -519,7 +519,7 @@ const FunctionProxyHandler = {
 const DataProxyHandler = {
     get(target, property)
     {
-        let result
+        let result = null
         if (typeof property === 'symbol') { // handles iterators and other stuff we don't want to change
             result = target[property]
         }
@@ -592,7 +592,7 @@ const DataProxyHandler = {
 const GroupByProxyHandler = {
     get(target, property)
     {
-        let result
+        let result = null
         switch(property) {
             case 'select':
                 result = function(filter) {
@@ -650,7 +650,7 @@ const GroupByProxyHandler = {
 const EmptyHandler = {
     get(target, property)
     {
-        let result = undefined
+        let result = null
         switch(property) {
             case 'where':
                 result = function() {
@@ -660,7 +660,7 @@ const EmptyHandler = {
             case 'reduce':
             case 'select':
                 result = function() {
-                    return undefined
+                    return null
                 }
             break
             case 'orderBy':
@@ -720,14 +720,20 @@ function getPointerFn(path)
                 if (Array.isArray(data) && parseInt(prop)!=prop) {
                     localPath.unshift(prop) // put it back to call in .map
                     return data.map(getPointerFn(localPath))
+                } else if (typeof data?.[prop] != 'undefined') {
+                    data = data[prop]
                 } else {
-                    data = data?.[prop]
+                    data = null
                 }
                 prop = localPath.shift()
             }
             return data
         } else if (key) {
-            return data[key]
+            if (typeof data?.[key] != 'undefined') {
+                return data[key]
+            } else {
+                return null
+            }
         } else {
             return data
         }

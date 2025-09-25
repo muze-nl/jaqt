@@ -1,6 +1,25 @@
 import { _, from, asc, desc, many, one, first, avg, count, distinct } from '../src/jaqt.mjs'
 import tap from 'tap'
 
+const allTypes = [
+	{
+		string: "",
+		number: 0,
+		boolean: false,
+		object: {
+			foo: 'bar'
+		},
+		array: [
+			1,2,3
+		],
+		arrayOfObjects: [
+			{
+				bar: 'foo'
+			}
+		]
+	}
+]
+
 const data = [
 	{
 		name: 'John',
@@ -57,6 +76,30 @@ const data2 = JSON.parse(`
 
 data[0].friends.push(data[1])
 data[1].friends.push(data[0])
+
+tap.test('types', t => {
+	let result = from(allTypes).select({
+		string: _,
+		number: _,
+		boolean: _,
+		object: _,
+		array: _,
+		arrayOfObjects: {
+			bar: _,
+			undefined: _
+		},
+		undefined: _
+	}).pop()
+	t.same(result.string, '')
+	t.equal(result.number, 0)
+	t.equal(result.boolean, false)
+	t.same(result.object, { foo: 'bar'})
+	t.same(result.array, [1,2,3])
+	t.same(result.arrayOfObjects[0].bar, 'foo')
+	t.equal(result.arrayOfObjects[0].undefined, null)
+	t.equal(result.undefined, null)
+	t.end()
+})
 
 tap.test('select', t => {
 	let result = from(data).select({
@@ -296,8 +339,7 @@ tap.test('select-null', t => {
 		name: _,
 		foo: _
 	})
-	let check = typeof result[0].foo == 'undefined'
-	t.ok(check)
+	t.equal(result[0].foo, null)
 	t.end()
 })
 
@@ -307,7 +349,7 @@ tap.test('select-from-null', t => {
 		name: _,
 		foo: _
 	})
-	let check = result === undefined
+	let check = result === null
 	t.ok(check)
 	t.end()
 })
@@ -320,7 +362,7 @@ tap.test('select-from-null-child', t => {
 			name: _
 		}
 	})
-	let check = result[0].foo === undefined
+	let check = result[0].foo === null
 	t.ok(check)
 	t.end()
 })
@@ -336,9 +378,9 @@ tap.test('select-null-property', t => {
 			bar: _.name
 		}
 	})
-	let check = result[0].isNull === undefined
+	let check = result[0].isNull === null
 	t.ok(check)
-	check = result[0].hasNull[0] === undefined
+	check = result[0].hasNull[0].bar === null
 	t.ok(check)
 	t.end()	
 })
