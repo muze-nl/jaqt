@@ -1377,3 +1377,5 @@ A deliberate design choice made is that if you query for a specific key, and tha
 The reason for this is that this makes code that reads the result simpler. You don't have to check if a specific key is present in the result, if you know the query used.
 
 The drawback is that you cannot know if a property is undefined in the data, or explicitly set to null. But since the query is just javascript, you can always create your own function to check for that, in the query.
+
+Simply setting a properties value to `undefined` won't work, since JSON (and therefor JSONTag as well) specifically skip properties set to `undefined` in the stringify function.
