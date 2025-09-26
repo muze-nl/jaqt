@@ -1369,3 +1369,11 @@ sorter(a,b) // => -1, 0, or 1
 ```
 
 And a group function is simply a selector. Whose return values will be used to group results by. Here however, the selector function is called with only the `data` parameter.
+
+## Undefined and null
+
+A deliberate design choice made is that if you query for a specific key, and that key is not available in the data--it is undefined--, jaqt will set a `null` value for that key. Any key present in the select object, will always be present in the resulting dataset.
+
+The reason for this is that this makes code that reads the result simpler. You don't have to check if a specific key is present in the result, if you know the query used.
+
+The drawback is that you cannot know if a property is undefined in the data, or explicitly set to null. But since the query is just javascript, you can always create your own function to check for that, in the query.

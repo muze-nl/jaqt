@@ -189,6 +189,31 @@ from(data)
 	friends: many(_)
 })
 ```
+You can also pass a select object to many:
+
+```javascript
+const data = [
+	{
+		name: "John",
+		friend: {
+			name: "Jane"
+		}
+	},
+	{
+		name: "Jane",
+		friend: {
+			name: "John"
+		}
+	}
+]
+
+from(data)
+.select({
+	friend: many({
+		name: _
+	})
+})
+```
 
 <a name="first"></a>
 ### first()
