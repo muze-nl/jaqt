@@ -1,41 +1,41 @@
 {
-	"name": "@muze-nl/jaqt",
-	"version": "0.10.2",
-	"description": "Javascript Queries and Transformations, allows GraphQL-like functionality on Javascript arrays of objects.",
-	"type": "module",
-	"author": "Auke van Slooten <auke@muze.nl>",
-	"keywords": [
-		"from",
-		"query",
-		"select",
-		"where",
-		"tranformation"
-	],
-	"homepage": "https://github.com/muze-nl/jaqt",
-	"bugs": {
-		"url": "https://github.com/muze-nl/jaqt/issues"
-	},
-	"license": "MIT",
-	"main": "./src/jaqt.mjs",
-	"scripts": {
-		"test": "tap test/test.*.mjs",
-		"repl": "NODE_REPL_HISTORY=repl/history.repl node repl/repl.mjs"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/muze-nl/jaqt.git"
-	},
-	"engines": {
-		"node": ">=20.0.0"
-	},
-	"devDependencies": {
-		"@eslint/js": "^9.36.0",
-		"eslint": "^9.36.0",
-		"globals": "^16.4.0",
-		"tap": "~21.1.0"
-	},
-	"files": [
-		"src/",
-		"README.md"
-	]
+    "name": "@muze-nl/jaqt",
+    "version": "0.10.3",
+    "description": "Javascript Queries and Transformations, allows GraphQL-like functionality on Javascript arrays of objects.",
+    "type": "module",
+    "author": "Auke van Slooten <auke@muze.nl>",
+    "keywords": [
+        "from",
+        "query",
+        "select",
+        "where",
+        "tranformation"
+    ],
+    "homepage": "https://github.com/muze-nl/jaqt",
+    "bugs": {
+        "url": "https://github.com/muze-nl/jaqt/issues"
+    },
+    "license": "MIT",
+    "main": "./src/jaqt.mjs",
+    "scripts": {
+        "test": "tap test/test.*.mjs",
+        "repl": "NODE_REPL_HISTORY=repl/history.repl node repl/repl.mjs"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/muze-nl/jaqt.git"
+    },
+    "engines": {
+        "node": ">=20.0.0"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.36.0",
+        "eslint": "^9.36.0",
+        "globals": "^16.4.0",
+        "tap": "~21.1.0"
+    },
+    "files": [
+        "src/",
+        "README.md"
+    ]
 }
