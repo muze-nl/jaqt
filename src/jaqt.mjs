@@ -579,7 +579,8 @@ const DataProxyHandler = {
                 }
             }
         }
-        if (!result && target && typeof target[property]==='function') {
+        if (!result && target && typeof target[property]==='function'
+        ) {
             result = new Proxy(target[property], FunctionProxyHandler)
         }
         if (!result) {
@@ -654,7 +655,7 @@ const EmptyHandler = {
         switch(property) {
             case 'where':
                 result = function() {
-                    return new Proxy([], EmptyHandler)
+                    return new Proxy(new Null(), EmptyHandler)
                 }
             break
             case 'reduce':
@@ -665,19 +666,26 @@ const EmptyHandler = {
             break
             case 'orderBy':
                 result = function() {
-                    return new Proxy([], EmptyHandler)
+                    return new Proxy(new Null(), EmptyHandler)
                 }
             break
             case 'groupBy':
                 result = function() {
-                    return new Proxy([], EmptyHandler)
+                    return new Proxy(new Null(), EmptyHandler)
                 }
             break
         }
-        if (!result && target && typeof target[property]==='function') {
-            result = new Proxy(target[property], FunctionProxyHandler)
+        if (!result && typeof target?.[property] == 'function') {
+            result = target[property];
         }
         return result
+    }
+}
+
+class Null 
+{
+    toJSON() {
+        return null
     }
 }
 
@@ -691,7 +699,7 @@ const EmptyHandler = {
 export function from(data)
 {
     if (!data || typeof data !== 'object') {
-        return new Proxy([], EmptyHandler)
+        return new Proxy(new Null(), EmptyHandler)
     }
     return new Proxy(data, DataProxyHandler)
 }
