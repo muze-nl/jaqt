@@ -733,6 +733,17 @@ result = from(data.people)
 })
 ```
 
+Which gives the result:
+
+```
+[
+    { name: 'R2-D2' },
+    { name: 'Leia' },
+    { name: 'Luke' },
+    { name: 'Darth' }
+]
+```
+
 ### Multiple Sort Properties
 
 You can order by more than one property. Suppose we want to sort on gender and then on name, e.g:
