@@ -88,8 +88,15 @@ npm install jaqt
 Or use it directly from a CDN like jsdeliver.net:
 
 ```html
+<script type="importmap">
+{
+    "imports": {
+        "@muze-nl/jaqt": "https://cdn.jsdelivr.net/npm/@muze-nl/jaqt/src/jaqt.mjs"
+    }
+}
+</script>
 <script type="module">
-    import * as jaqt from 'https://cdn.jsdelivr.net/npm/@muze-nl/jaqt/src/jaqt.mjs'
+    import * as jaqt from '@muze-nl/jaqt'
 </script>
 ```
 
