@@ -724,13 +724,21 @@ You can also order by values that are not in your select statement. Do this by f
 ```javascript
 result = from(data.people)
 .orderBy({
-    metrics: {
-        height: asc
-    }
+    height: asc
 })
 .select({
     name: _
 })
+```
+
+And the result is:
+```
+[
+    { "name": "R2-D2"},
+    { "name": "Leia"},
+    { "name": "Luke"},
+    { "name": "Darth"}
+]
 ```
 
 ### Multiple Sort Properties
