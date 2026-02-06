@@ -328,6 +328,12 @@ function getMatchingGroups(data, pointerFn)
 function groupBy(data, pointerFunctions)
 {
     let pointerFn = pointerFunctions.shift()
+    if (typeof pointerFn=='string') {
+        pointerFn = _[pointerFn]
+    }
+    if (typeof pointerFn != 'function') {
+        throw new Error('groupBy parameters must be either a property name or a pointer function (e.g.: _.name)')
+    }
     let groups = getMatchingGroups(data, pointerFn)
     if (pointerFunctions.length) {
         for (let group in groups) {
