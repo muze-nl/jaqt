@@ -442,7 +442,7 @@ tap.test('select-first', t => {
 	]
 	let result = from(mdata)
 	.select({
-		name: first(_.name, _.lastName, 'Unknown')
+		name: first(_.name, _.lastName, null, 'Unknown')
 	})
 	t.same(result[0].name, 'John')
 	t.same(result[1].name, 'Doe')

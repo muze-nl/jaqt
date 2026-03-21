@@ -9,6 +9,15 @@ function isPrimitiveWrapper(data)
     return [String, Boolean, Number, BigInt].includes(data?.constructor)
 }
 
+/**
+ * Selects only one of the matching values. You can specify whether to return
+ * the 'last' value, or the 'first'. Or you can pass a function as the whichOne
+ * parameter and let it decide which value to return.
+ * 
+ * @param function selectFn The selector, e.g. `_.name`
+ * @param {mixed} whichOne Default value 'last'. Either 'first', 'last' or a function with (array) => value
+ * @return {mixed} One of the matching values
+ */
 export function one(selectFn, whichOne='last')
 {
     return (data, key, context) => {
@@ -32,6 +41,12 @@ export function one(selectFn, whichOne='last')
     }
 }
 
+/**
+ * Turns the selected value into an array, if it wasn't already an array
+ * 
+ * @param {function} selectFn the selector function, e.g. _.name
+ * @return {array}
+ */
 export function many(selectFn)
 {
     return (data, key, context) => {
@@ -51,6 +66,12 @@ export function many(selectFn)
     }
 }
 
+/**
+ * Returns the first matching value that is not null or undefined or an empty string.
+ * 
+ * @param {...mixed} args A list of selector functions or static values.
+ * @return the first selected value that is not empty (null, undefined or "")
+ */
 export function first(...args)
 {
     return (data, key, context) => {
@@ -61,7 +82,7 @@ export function first(...args)
                 if (result!=null && result!==undefined && result!=="") {
                     return result
                 }
-            } else {
+            } else if (arg!==null && arg!==undefined && arg!=="") {
                 return arg
             }
         }
