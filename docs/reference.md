@@ -111,7 +111,7 @@ from(data)
 })
 ```
 
-Finally use the spread operator to include different fragments, like this:
+Or use the spread operator to include different fragments, like this:
 
 ```javascript
 const names = {
@@ -121,6 +121,16 @@ const names = {
 from(data)
 .select({
 	...names,
+	foo: 'bar'
+})
+```
+
+Finally you can also select the entire data object and extend it with extra properties, or just override a specific set of proeprties, like this:
+
+```javascript
+from(data)
+.select({
+	_,
 	foo: 'bar'
 })
 ```
