@@ -110,6 +110,18 @@ tap.test('select', t => {
 	t.end()
 })
 
+tap.test('select-extend', t => {
+	let result = from(data).select({
+		_,
+		name: _
+	})
+	t.same(result[0].name,data[0].name)
+	t.same(result[1].name,data[1].name)
+	t.same(result[0].lastName, data[0].lastName)
+	t.same(result[0].metrics.hair_color, data[0].metrics.hair_color)
+	t.end()
+})
+
 // this makes sure that you can return static
 // strings in a select that happen to be a
 // property name

@@ -107,28 +107,32 @@ function getSelectFn(filter)
     } else for (const [filterKey, filterValue] of Object.entries(filter)) {
         if (filterValue instanceof Function) {
             fns.push( (data) => {
-                const result = {
-                    [filterKey]: filterValue(data, filterKey, 'select')
+                if (filterKey=='_') {
+                    return filterValue(data, filterKey, 'select')
+                } else {
+                    return {
+                        [filterKey]: filterValue(data, filterKey, 'select')
+                    }
                 }
-                // if (typeof result[filterKey] === 'undefined' && typeof data?.[filterKey] === 'undefined') {
-                //     return undefined
-                // }
-                return result
             })
         } else if (!isPrimitiveWrapper(filterValue)) {
             fns.push( (data) => {
-                const result = {
-                    [filterKey]: from(data[filterKey]).select(filterValue)
+                if (filterKey=='_') {
+                    return from(data[filterKey]).select(filterValue)
+                } else {
+                    return {
+                        [filterKey]: from(data[filterKey]).select(filterValue)
+                    }
                 }
-                // if (typeof result[filterKey] === 'undefined' && typeof data?.[filterKey] === 'undefined') {
-                //     return undefined
-                // }
-                return result
             })
         } else {
             fns.push( () => {
-                return {
-                    [filterKey]: filterValue
+                if (filterKey=='_') {
+                    return filterValue
+                } else {
+                    return {
+                        [filterKey]: filterValue
+                    }
                 }
             })
         }
@@ -763,7 +767,7 @@ function getPointerFn(path)
                 prop = localPath.shift()
             }
             return data
-        } else if (key) {
+        } else if (key && key!=='_') {
             if (typeof data?.[key] != 'undefined') {
                 return data[key]
             } else {
