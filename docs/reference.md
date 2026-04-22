@@ -7,7 +7,7 @@
    - [allOf()](#allOf)
 - [select()](#select)
 	- [one()](#one)
-	- [meny()](#many)
+	- [many()](#many)
 	- [first()](#first)
 	- [distinct()](#select-distinct)
 - [orderBy()](#orderBy)
