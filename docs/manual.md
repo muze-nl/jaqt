@@ -105,7 +105,7 @@ Or use it directly from a CDN like jsdeliver.net:
 In the remainder of this manual, examples will use the following import statement to make all methods available as global functions. This makes all the examples shorter and easier to read:
 
 ```javascript
-import { _, from, not, anyOf, allOf, asc, desc, sum, avg, count, max, min, one, many, first } from 'jaqt'
+import { _, from, not, anyOf, allOf, matchIf, asc, desc, sum, avg, count, max, min, one, many, first } from 'jaqt'
 ```
 
 ### Running the example code
@@ -526,6 +526,25 @@ Which results in:
 ```
 
 You can pass any number of values to `anyOf`. These can be value that is accepted by `where`, so exact values, a regular expression or a custom match function.
+
+### matchIf
+
+Sometimes a query has optional criteria. `matchIf` lets you keep the `where` shape declarative by only applying a criterion when the first argument is truthy:
+
+```javascript
+result = from(data.people)
+.where({
+    name: matchIf(nameFilter, nameFilter),
+    metrics: matchIf(skinColor, {
+        skin_color: skinColor
+    })
+})
+.select({
+    name: _
+})
+```
+
+The second argument can be any normal `where` pattern, including nested object patterns.
 
 ### allOf
 

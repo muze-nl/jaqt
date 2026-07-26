@@ -1,4 +1,4 @@
-import { _, from, not, anyOf, allOf } from '../src/jaqt.mjs'
+import { _, from, not, anyOf, allOf, matchIf } from '../src/jaqt.mjs'
 import tap from 'tap'
 
 const data = [
@@ -155,6 +155,50 @@ tap.test('where-allOf-array', t => {
 	})
 	t.same(result[0], {name: 'Jane'})
 	t.equal(result.length, 1)
+	t.end()
+})
+tap.test('where-matchIf-ignored', t => {
+	let result = from(data).where({
+		name: matchIf(false, 'John')
+	}).select({
+		name: _
+	})
+	t.same(result[0], {name: 'John'})
+	t.same(result[1], {name: 'Jane'})
+	t.end()
+})
+tap.test('where-matchIf-active', t => {
+	let result = from(data).where({
+		name: matchIf(true, 'John')
+	}).select({
+		name: _
+	})
+	t.same(result[0], {name: 'John'})
+	t.equal(result.length, 1)
+	t.end()
+})
+tap.test('where-matchIf-nested', t => {
+	let result = from(data).where({
+		friends: matchIf(true, {
+			name: 'John'
+		})
+	}).select({
+		name: _
+	})
+	t.same(result[0], {name: 'Jane'})
+	t.equal(result.length, 1)
+	t.end()
+})
+tap.test('where-matchIf-nested-ignored', t => {
+	let result = from(data).where({
+		friends: matchIf(false, {
+			name: 'John'
+		})
+	}).select({
+		name: _
+	})
+	t.same(result[0], {name: 'John'})
+	t.same(result[1], {name: 'Jane'})
 	t.end()
 })
 tap.test('where-string-object', t => {

@@ -1,13 +1,15 @@
 # jaqt reference manual
 
 - [from()](#from)
+- [toArray()](#toArray)
 - [where()](#where)
    - [not()](#not)
    - [anyOf()](#anyOf)
    - [allOf()](#allOf)
+   - [matchIf()](#matchIf)
 - [select()](#select)
 	- [one()](#one)
-	- [meny()](#many)
+	- [many()](#many)
 	- [first()](#first)
 	- [distinct()](#select-distinct)
 - [orderBy()](#orderBy)
@@ -25,6 +27,22 @@
 ### from()
 
 From wraps its parameter in a Proxy, on which you can call where--if its an array-- and select, for either arrays or objects. 
+
+<a name="toArray"></a>
+### toArray()
+
+Use `toArray()` to end a JAQT chain and get a normal array value:
+
+```javascript
+from(data)
+.where({
+	lastName: 'Doe'
+})
+.select(_.name)
+.toArray()
+```
+
+If the current value is an array, `toArray()` returns a shallow copy. If the current value is an object, it returns that object in a single-item array. If the current value is empty, it returns an empty array.
 
 <a name="select"></a>
 ### select()
@@ -408,6 +426,23 @@ from(data)
 		}
 	)
 )
+.select({
+	name: _
+})
+```
+
+<a name="matchIf"></a>
+### matchIf()
+`matchIf()` conditionally applies a `where()` pattern. If the first argument is truthy, the second argument is matched as a normal `where()` shape. If the first argument is falsy, that condition is ignored.
+
+```javascript
+from(data)
+.where({
+	name: matchIf(nameFilter, nameFilter),
+	friends: matchIf(friendName, {
+		name: friendName
+	})
+})
 .select({
 	name: _
 })

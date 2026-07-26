@@ -110,6 +110,38 @@ tap.test('select', t => {
 	t.end()
 })
 
+tap.test('toArray', t => {
+	let result = from(data)
+	.where({
+		lastName: 'Doe'
+	})
+	.select(_.name)
+	.toArray()
+	t.same(result, ['John', 'Jane'])
+	t.ok(Array.isArray(result))
+	t.not(result, data)
+	t.end()
+})
+
+tap.test('toArray-object', t => {
+	let object = {
+		name: 'John'
+	}
+	let result = from(object)
+	.select({
+		name: _
+	})
+	.toArray()
+	t.same(result, [{ name: 'John' }])
+	t.end()
+})
+
+tap.test('toArray-null', t => {
+	let result = from(null).toArray()
+	t.same(result, [])
+	t.end()
+})
+
 tap.test('select-extend', t => {
 	let result = from(data).select({
 		_,

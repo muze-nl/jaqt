@@ -43,7 +43,7 @@ Or use it directly from a CDN like jsdeliver.net:
 In the remainder of the documentation, we're using the following import statement to make all methods available as global functions. This makes all the examples shorter and easier to read:
 
 ```javascript
-import { _, from, not, anyOf, allOf, asc, desc, sum, avg, count, max, min, one, many, first } from '@muze-nl/jaqt'
+import { _, from, not, anyOf, allOf, matchIf, asc, desc, sum, avg, count, max, min, one, many, first } from '@muze-nl/jaqt'
 ```
 
 ## First steps
@@ -244,4 +244,3 @@ Which will result in:
 If you call `from()` on an array, the `select`,`where` and `orderBy` methods will return an array Proxy, with all array methods available. `groupBy` returns an object Proxy, with keys grouping the values.
 
 If you call `from()` on an object, the `select` method will return an object Proxy. The `where`, `orderBy` and `groupBy` methods aren't available in this case.
-
