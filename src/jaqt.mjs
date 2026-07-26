@@ -484,6 +484,25 @@ export function min(fetchFn)
 
 
 /**
+ * MatchIf conditionally applies a where pattern.
+ * If test is truthy, the pattern must match. If test is falsy,
+ * the condition is ignored.
+ *
+ * @param  {mixed} test     Whether to apply the pattern
+ * @param  {mixed} pattern  The pattern to test when test is truthy
+ * @return {function}       True if test is falsy or the pattern matches
+ */
+export function matchIf(test, pattern)
+{
+    if (!test) {
+        return () => true
+    }
+
+    let matchFn = getMatchFn(pattern)
+    return data => matchFn(data)
+}
+
+/**
  * Not inverts the result from the matches function.
  * It returns a function expecting a data parameter and inverts the result
  * of matching that data with the pattern given to not()
@@ -553,6 +572,14 @@ const DataProxyHandler = {
         let result = null
         if (typeof property === 'symbol') { // handles iterators and other stuff we don't want to change
             result = target[property]
+        }
+        if (property==='toArray') {
+            result = function() {
+                if (Array.isArray(target)) {
+                    return Array.from(target)
+                }
+                return [target]
+            }
         }
         if (Array.isArray(target)) {
             switch(property) {
@@ -684,6 +711,11 @@ const EmptyHandler = {
     {
         let result = null
         switch(property) {
+            case 'toArray':
+                result = function() {
+                    return []
+                }
+            break
             case 'where':
                 result = function() {
                     return new Proxy(new Null(), EmptyHandler)
