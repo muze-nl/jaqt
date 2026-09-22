@@ -448,6 +448,22 @@ tap.test('select-one', t => {
 	t.end()
 })
 
+tap.test('select-one preserves arrays returned by a custom selector', t => {
+	const record = { tags: ['draft', 'reviewed'] }
+	const selectLast = one(record => record.tags)
+	const selectFirst = one(record => record.tags, 'first')
+
+	t.equal(selectLast(record), 'reviewed')
+	t.same(record.tags, ['draft', 'reviewed'])
+	t.equal(selectFirst(record), 'draft')
+	t.same(record.tags, ['draft', 'reviewed'])
+
+	const empty = { tags: Object.freeze([]) }
+	t.equal(selectLast(empty), undefined)
+	t.equal(selectFirst(empty), undefined)
+	t.end()
+})
+
 tap.test('select-one-function', t => {
 	const mdata = [
 		{

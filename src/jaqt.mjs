@@ -30,9 +30,9 @@ export function one(selectFn, whichOne='last')
         let result = selectFn(data, key, context)
         if (Array.isArray(result)) {
             if (whichOne=='last') {
-                result = result.pop()
+                result = result[result.length - 1]
             } else if (whichOne=='first') {
-                result = result.shift()
+                result = result[0]
             } else if (typeof whichOne == 'function') {
                 result = whichOne(result)
             }
